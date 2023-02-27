@@ -120,6 +120,62 @@ goog_stock |>
   filter(Close == goog_stock_max)
 ```
 
+# Ex 3
+
+Download the file `tute1.csv` from the [book website]("https://bit.ly/fpptute1"), open it in Excel (or some other spreadsheet application), and review its contents. You should find four columns of information. Columns B through D each contain a quarterly series, labelled Sales, AdBudget and GDP. Sales contains the quarterly sales for a small company over the period 1981-2005. AdBudget is the advertising budget and GDP is the gross domestic product. All series have been adjusted for inflation.
+
+a. Read data inR
+
+```{r}
+tute1 <- readr::read_csv("tute1.csv")
+tute1
+```
+
+b. Convert data to time series
+
+```{r}
+tute_ts <- tute1 |>
+  mutate(Quarter = yearquarter(Quarter)) |>
+  as_tsibble(index = Quarter)
+tute_ts
+```
+
+c. Construct time series plots of each of the three series
+
+```{r}
+tute_ts |>
+  pivot_longer(-Quarter) |>
+  ggplot(aes(x = Quarter, y = value, colour = name)) +
+  geom_line() +
+  facet_grid(name ~ ., scales = "free_y")
+```
+
+# Exercise 4
+
+The USgas package contains data on the demand for natural gas in the US.
+
+Install the USgas package.
+Create a tsibble from us_total with year as the index and state as the key.
+Plot the annual natural gas consumption by state for the New England area (comprising the states of Maine, Vermont, New Hampshire, Massachusetts, Connecticut and Rhode Island).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

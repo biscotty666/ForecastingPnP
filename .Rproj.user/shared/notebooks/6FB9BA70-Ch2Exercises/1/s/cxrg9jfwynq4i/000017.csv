@@ -1,0 +1,5 @@
+"0","tute_ts |>"
+"0","  pivot_longer(-Quarter) |>"
+"0","  ggplot(aes(x = Quarter, y = value, colour = name)) +"
+"0","  geom_line() +"
+"0","  facet_grid(name ~ ., scales = ""free_y"")"

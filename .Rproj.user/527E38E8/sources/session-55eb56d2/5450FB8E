@@ -3,7 +3,7 @@
     "path": "~/Learning/R/FPnP/exercises/Ch2Exercises.Rmd",
     "project_path": "exercises/Ch2Exercises.Rmd",
     "type": "r_markdown",
-    "hash": "2239728796",
+    "hash": "890959258",
     "contents": "",
     "dirty": false,
     "created": 1677521259855.0,
@@ -14,15 +14,15 @@
         "chunk_output_type": "inline",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "11,13",
-        "scrollLine": "0"
+        "cursorPosition": "162,0",
+        "scrollLine": "151"
     },
     "folds": "",
-    "lastKnownWriteTime": 1677525906,
+    "lastKnownWriteTime": 1677526806,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1677525906713,
+    "last_content_update": 1677526942194,
     "read_only": false,
     "read_only_alternatives": []
 }

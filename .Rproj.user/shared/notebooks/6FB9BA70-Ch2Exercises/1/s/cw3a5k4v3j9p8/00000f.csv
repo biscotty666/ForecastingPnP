@@ -1,0 +1,4 @@
+"0","tute_ts <- tute1 |>"
+"0","  mutate(Quarter = yearquarter(Quarter)) |>"
+"0","  as_tsibble(index = Quarter)"
+"0","tute_ts"
