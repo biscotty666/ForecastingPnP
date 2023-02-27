@@ -1,0 +1,5 @@
+"0","print_retail <- aus_retail |>"
+"0","  filter(Industry == ""Newspaper and book retailing"") |>"
+"0","  group_by(Industry) |>"
+"0","  index_by(Year = year(Month)) |>"
+"0","  summarise(Turnover = sum(Turnover))"

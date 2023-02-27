@@ -1,0 +1,4 @@
+"0","global_economy |>"
+"0","  filter(Country == ""Australia"") |>"
+"0","  autoplot(GDP/Population) +"
+"0","  labs(title = ""GDP per capita"", y = ""$US"")"
