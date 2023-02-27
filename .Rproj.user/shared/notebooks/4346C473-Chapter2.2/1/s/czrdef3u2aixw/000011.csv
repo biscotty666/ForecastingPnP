@@ -1,0 +1,3 @@
+"0","gg_subseries(holidays, Trips) +"
+"0","  labs(y = ""Overnight trips ('000)"","
+"0","       title = ""Austrlian domestic holidays"")"

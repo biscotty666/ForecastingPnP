@@ -1,0 +1,7 @@
+"0","vic_elec |>"
+"0","  filter(year(Time) == 2014) |>"
+"0","  autoplot(Temperature) +"
+"0","  labs("
+"0","    y = ""Degrees Celsius"","
+"0","    title = ""Half-hourly temperatures: Melbourne, Australia"""
+"0","  )"

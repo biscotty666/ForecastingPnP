@@ -1,0 +1,3 @@
+"0","vic_elec |> gg_season(Demand, period = ""week"") +"
+"0","  theme(legend.position = ""none"") +"
+"0","  labs(y = ""Mwh"", title = ""Electricity demain in Victoria"")"

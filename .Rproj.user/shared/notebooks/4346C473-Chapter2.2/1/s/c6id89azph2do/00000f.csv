@@ -1,0 +1,4 @@
+"0","a10 |>"
+"0","  gg_season(Cost, labels = ""both"") +"
+"0","  labs(y = ""$ (millions)"","
+"0","       title = ""Seasonal plot: Antidiabetic drug sales"")"
