@@ -1,0 +1,6 @@
+"0","aus_exports |>"
+"0","  autoplot(Exports) +"
+"0","  geom_line(aes(y = `5-MA`), colour = ""#D55E00"") +"
+"0","  labs(y = ""% of GDP"","
+"0","       title = ""Total Australian exports"") +"
+"0","  guides(colour = guide_legend(title = ""series""))"

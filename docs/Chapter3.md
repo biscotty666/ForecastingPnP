@@ -19,6 +19,21 @@ Chapter 3 Time series decomposition
     in the US retail sector</a>
   - <a href="#seasonally-adjusted-data"
     id="toc-seasonally-adjusted-data">Seasonally adjusted data</a>
+- <a href="#33-moving-averages" id="toc-33-moving-averages">3.3 Moving
+  Averages</a>
+  - <a href="#moving-average-smoothing"
+    id="toc-moving-average-smoothing">Moving average smoothing</a>
+  - <a href="#moving-averages-of-moving-averages"
+    id="toc-moving-averages-of-moving-averages">Moving averages of moving
+    averages</a>
+  - <a href="#estimating-the-trend-cycle-with-seasonal-data"
+    id="toc-estimating-the-trend-cycle-with-seasonal-data">Estimating the
+    trend-cycle with seasonal data</a>
+  - <a href="#example-employment-in-the-us-retail-sector-1"
+    id="toc-example-employment-in-the-us-retail-sector-1">Example:
+    Employment in the US retail sector</a>
+  - <a href="#weighted-moving-averages"
+    id="toc-weighted-moving-averages">Weighted moving averages</a>
 
 ``` r
 library(fpp3)
@@ -313,3 +328,181 @@ interesting.
 
 Remember that seasonally adjusted components still contain the trend and
 remainder.
+
+# 3.3 Moving Averages
+
+Classical decomposition method originating in the 1920s and widely used
+until the 1950s. It remains the basis of many time series decomposition
+methods.
+
+The first step is to use a moving average method to estimate the
+trend-cycle.
+
+## Moving average smoothing
+
+A moving average of order $m$ can be written:
+
+$$
+\begin{equation}
+  \hat{T}_{t} = \frac{1}{m} \sum_{j=-k}^k y_{t+j}
+\end{equation}
+$$
+
+where $m=2k+1$. This eliminates some of the randomness and smooths the
+trend-cycle component. This is called an $m$**-MA**, meaning a moving
+average of order $m$.
+
+``` r
+global_economy |>
+  filter(Country == "Australia") |>
+  autoplot(Exports) +
+  labs(y = "% of GDP", title = "Total Australian Exports")
+```
+
+![](Chapter3_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+
+``` r
+aus_exports <- global_economy |>
+  filter(Country == "Australia") |>
+  mutate(
+    `5-MA` = slider::slide_dbl(Exports, mean,
+                .before = 2, .after = 2, .complete = TRUE)
+  )
+aus_exports
+```
+
+    ## # A tsibble: 58 x 10 [1Y]
+    ## # Key:       Country [1]
+    ##    Country   Code   Year         GDP Growth   CPI Imports Exports Popul…¹ `5-MA`
+    ##    <fct>     <fct> <dbl>       <dbl>  <dbl> <dbl>   <dbl>   <dbl>   <dbl>  <dbl>
+    ##  1 Australia AUS    1960     1.86e10  NA     7.96    14.1    13.0  1.03e7   NA  
+    ##  2 Australia AUS    1961     1.96e10   2.49  8.14    15.0    12.4  1.05e7   NA  
+    ##  3 Australia AUS    1962     1.99e10   1.30  8.12    12.6    13.9  1.07e7   13.5
+    ##  4 Australia AUS    1963     2.15e10   6.21  8.17    13.8    13.0  1.10e7   13.5
+    ##  5 Australia AUS    1964     2.38e10   6.98  8.40    13.8    14.9  1.12e7   13.6
+    ##  6 Australia AUS    1965     2.59e10   5.98  8.69    15.3    13.2  1.14e7   13.4
+    ##  7 Australia AUS    1966     2.73e10   2.38  8.98    15.1    12.9  1.17e7   13.3
+    ##  8 Australia AUS    1967     3.04e10   6.30  9.29    13.9    12.9  1.18e7   12.7
+    ##  9 Australia AUS    1968     3.27e10   5.10  9.52    14.5    12.3  1.20e7   12.6
+    ## 10 Australia AUS    1969     3.66e10   7.04  9.83    13.3    12.0  1.23e7   12.6
+    ## # … with 48 more rows, and abbreviated variable name ¹​Population
+
+``` r
+aus_exports |>
+  autoplot(Exports) +
+  geom_line(aes(y = `5-MA`), colour = "#D55E00") +
+  labs(y = "% of GDP",
+       title = "Total Australian exports") +
+  guides(colour = guide_legend(title = "series"))
+```
+
+    ## Warning: Removed 4 rows containing missing values (`geom_line()`).
+
+![](Chapter3_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+
+The moving average is smoother than the original data. The larger the
+order the smoother the line.
+
+<img src="https://otexts.com/fpp3/fpp_files/figure-html/aus-exports-compare-1.png" />
+
+Note that the order is usually odd so that the moving objects averages
+are symmetric.
+
+## Moving averages of moving averages
+
+For even-ordered moving average we can take a moving average of the
+moving averages to make them symmetrical.
+
+``` r
+beer <- aus_production |>
+  filter(year(Quarter) >= 1992) |>
+  select(Quarter, Beer)
+beer_ma <- beer |>
+  mutate(
+    `4-MA` = slider::slide_dbl(Beer, mean,
+                .before = 1, .after = 2, .complete = TRUE),
+    `2x4-MA` = slider::slide_dbl(`4-MA`, mean,
+                .before = 1, .after = 0, .complete = TRUE)
+  )
+beer_ma
+```
+
+    ## # A tsibble: 74 x 4 [1Q]
+    ##    Quarter  Beer `4-MA` `2x4-MA`
+    ##      <qtr> <dbl>  <dbl>    <dbl>
+    ##  1 1992 Q1   443    NA       NA 
+    ##  2 1992 Q2   410   451.      NA 
+    ##  3 1992 Q3   420   449.     450 
+    ##  4 1992 Q4   532   452.     450.
+    ##  5 1993 Q1   433   449      450.
+    ##  6 1993 Q2   421   444      446.
+    ##  7 1993 Q3   410   448      446 
+    ##  8 1993 Q4   512   438      443 
+    ##  9 1994 Q1   449   441.     440.
+    ## 10 1994 Q2   381   446      444.
+    ## # … with 64 more rows
+
+When a 2-MA follows a moving average of an even order (such as 4), it is
+called a “centred moving average of order 4”. This is because the
+results are now symmetric. To see that this is the case, we can write
+the $2 \times 4$-MA as follows:
+
+$$
+\begin{align*}
+  \hat{T}_{t} &= \frac{1}{2}\Big[
+    \frac{1}{4} (y_{t-2}+y_{t-1}+y_{t}+y_{t+1}) +
+    \frac{1}{4} (y_{t-1}+y_{t}+y_{t+1}+y_{t+2})\Big] \\
+             &= \frac{1}{8}y_{t-2}+\frac14y_{t-1} +
+             \frac14y_{t}+\frac14y_{t+1}+\frac18y_{t+2}.
+\end{align*}
+$$ Other combinations are commonly used such as $3 \times 3$-MA.
+
+## Estimating the trend-cycle with seasonal data
+
+Centered moving averages are most commonly used for extracting the
+trend-cycle from seaonal data. For the $2 \times 4$-MA:
+
+$$
+\hat{T}_{t} = \frac{1}{8}y_{t-2} + \frac14y_{t-1} +
+    \frac14y_{t} + \frac14y_{t+1} + \frac18y_{t+2}
+$$
+
+In general a $2 \times m$-MA is equvalent to a weighted moving average
+of order $m+1$ where all observations take the weight $1/m$ except the
+first and last which take weights of $1/2m$. For example, a
+$2 \times 12$-MA can be used to estimate the trend-cycle of monthly data
+with annual seasonality and a $7$-MA can estimate the trend-cycle of
+daily data with weekly seasonality.
+
+## Example: Employment in the US retail sector
+
+``` r
+us_retail_employment_ma <- us_retail_employment |>
+  mutate(
+    `12-MA` = slider::slide_dbl(Employed, mean,
+                .before = 5, .after = 6, .complete = TRUE),
+    `2x12-MA` = slider::slide_dbl(`12-MA`, mean,
+                .before = 1, .after = 0, .complete = TRUE)
+  )
+us_retail_employment_ma |>
+  autoplot(Employed, colour = "gray") +
+  geom_line(aes(y = `2x12-MA`), colour = "#D55E00") +
+  labs(y = "Persons (thousands)",
+       title = "Total employment in US retail")
+```
+
+    ## Warning: Removed 12 rows containing missing values (`geom_line()`).
+
+![](Chapter3_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
+
+This is much like the trend-cycle obtained earlier with more
+sophisticated methods.
+
+## Weighted moving averages
+
+$$
+\hat{T}_t = \sum_{j=-k}^k a_j y_{t+j}
+$$
+
+where $k=(m-1)/2$ and the weights are given by $[a_{-k},\dots,a_k]$ and
+the **weights must sum to one** and that they are symmetric.

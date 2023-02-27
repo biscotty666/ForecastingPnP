@@ -1,0 +1,7 @@
+"0","aus_exports <- global_economy |>"
+"0","  filter(Country == ""Australia"") |>"
+"0","  mutate("
+"0","    `5-MA` = slider::slide_dbl(Exports, mean,"
+"0","                .before = 2, .after = 2, .complete = TRUE)"
+"0","  )"
+"0","aus_exports"
