@@ -12,6 +12,8 @@ Chapter 3 Time series decomposition
     id="toc-inflation-adjustments">Inflation adjustments</a>
   - <a href="#mathematical-transformations"
     id="toc-mathematical-transformations">Mathematical transformations</a>
+- <a href="#32-time-series-components"
+  id="toc-32-time-series-components">3.2 Time series components</a>
 
 ``` r
 library(fpp3)
@@ -168,3 +170,5 @@ aus_production |>
 ```
 
 ![](Chapter3_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+
+# 3.2 Time series components

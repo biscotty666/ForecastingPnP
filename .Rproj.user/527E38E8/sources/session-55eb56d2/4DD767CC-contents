@@ -6,4 +6,6 @@ My notes
 
 [Chapter 2 Time Series Graphics](docs/Chapter2.md)
 
+[Chapter 3 Time Series Decomposition](docs/Chapter3.md)
+
 [Chapter 2 Exercises](exercises/Ch2Exercises.md)

@@ -122,6 +122,8 @@ aus_production |>
        )))
 ```
 
+# 3.2 Time series components
+
 
 
 
