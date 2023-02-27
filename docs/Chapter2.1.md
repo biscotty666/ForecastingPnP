@@ -1,26 +1,22 @@
-Ch 2: Time series graphics
+Ch 2.1: `tsibble` objects
 ================
 
-- <a href="#21-tsibble-objects" id="toc-21-tsibble-objects">2.1
-  <code>tsibble</code> objects</a>
-  - <a href="#the-index-variable" id="toc-the-index-variable">The index
-    variable</a>
-  - <a href="#the-key-variables" id="toc-the-key-variables">The key
-    variables</a>
-  - <a href="#working-with-tsibble-objects"
-    id="toc-working-with-tsibble-objects">Working with <code>tsibble</code>
-    objects</a>
-    - <a href="#select" id="toc-select"><code>select()</code></a>
-    - <a href="#filter" id="toc-filter"><code>filter()</code></a>
-    - <a href="#summarise" id="toc-summarise"><code>summarise()</code></a>
-    - <a href="#mutate" id="toc-mutate"><code>mutate()</code></a>
-  - <a href="#read-a-csv-file-and-convert-to-a-tsibble"
-    id="toc-read-a-csv-file-and-convert-to-a-tsibble">Read a csv file and
-    convert to a <code>tsibble</code></a>
-  - <a href="#the-seasonal-period" id="toc-the-seasonal-period">The seasonal
-    period</a>
-
-# 2.1 `tsibble` objects
+- <a href="#the-index-variable" id="toc-the-index-variable">The index
+  variable</a>
+- <a href="#the-key-variables" id="toc-the-key-variables">The key
+  variables</a>
+- <a href="#working-with-tsibble-objects"
+  id="toc-working-with-tsibble-objects">Working with <code>tsibble</code>
+  objects</a>
+  - <a href="#select" id="toc-select"><code>select()</code></a>
+  - <a href="#filter" id="toc-filter"><code>filter()</code></a>
+  - <a href="#summarise" id="toc-summarise"><code>summarise()</code></a>
+  - <a href="#mutate" id="toc-mutate"><code>mutate()</code></a>
+- <a href="#read-a-csv-file-and-convert-to-a-tsibble"
+  id="toc-read-a-csv-file-and-convert-to-a-tsibble">Read a csv file and
+  convert to a <code>tsibble</code></a>
+- <a href="#the-seasonal-period" id="toc-the-seasonal-period">The seasonal
+  period</a>
 
 ``` r
 library(fpp3)
@@ -43,7 +39,7 @@ library(fpp3)
     ## ✖ tsibble::setdiff()   masks base::setdiff()
     ## ✖ tsibble::union()     masks base::union()
 
-## The index variable
+# The index variable
 
 ``` r
 library(tsibble)
@@ -113,7 +109,7 @@ in this case `yearmonth`. `as_tsibble()` sets the index for the
 | Daily     | `as_date()`, `ymd()`         |
 | Sub-Daily | `as_datetime()`, `ymd_hms()` |
 
-## The key variables
+# The key variables
 
 ``` r
 olympic_running
@@ -166,7 +162,7 @@ olympic_running |> distinct(Length)
     ## 6   5000
     ## 7  10000
 
-## Working with `tsibble` objects
+# Working with `tsibble` objects
 
 `dplyr` functions include mutate()`,`filter()`,`select()`,`summarise()\`
 
@@ -193,7 +189,7 @@ PBS
 This data set contains monthly data on Medicare Australia prescription
 data from July 1991 to June 2008.
 
-### `select()`
+## `select()`
 
 ``` r
 PBS |>
@@ -216,7 +212,7 @@ PBS |>
     ## 10 1992 Apr Concessional Co-payments A     Aliment… A10   ANTIDI…   97315 2.23e6
     ## # … with 806 more rows, and abbreviated variable names ¹​ATC1_desc, ²​ATC2_desc
 
-### `filter()`
+## `filter()`
 
 ``` r
 PBS |>
@@ -244,7 +240,7 @@ Note that `Month`, `Concession` and `Type` would be returned
 automatically to ensure that each row contains a unique combination of
 index and keys.
 
-### `summarise()`
+## `summarise()`
 
 ``` r
 PBS |>
@@ -268,7 +264,7 @@ PBS |>
     ## 10 1992 Apr 3204780
     ## # … with 194 more rows
 
-### `mutate()`
+## `mutate()`
 
 Used to create new variables
 
@@ -305,7 +301,7 @@ PBS |>
   mutate(Cost = TotalC/1e6) -> a10
 ```
 
-## Read a csv file and convert to a `tsibble`
+# Read a csv file and convert to a `tsibble`
 
 ``` r
 prison <- readr::read_csv("https://OTexts.com/fpp3/extrafiles/prison_population.csv")
@@ -370,7 +366,7 @@ prison
     ## 10 ACT   Female Remanded ATSI           1 2007 Q2
     ## # … with 3,062 more rows
 
-## The seasonal period
+# The seasonal period
 
 Common periods for time intervals
 

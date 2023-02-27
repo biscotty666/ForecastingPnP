@@ -1,5 +1,5 @@
 ---
-title: "Ch 2: Time series graphics"
+title: "Ch 2.1: `tsibble` objects"
 output:
   github_document:
     toc: true
@@ -8,13 +8,11 @@ output:
     df_print: paged
 ---
 
-# 2.1 `tsibble` objects
-
 ```{r}
 library(fpp3)
 ```
 
-## The index variable
+# The index variable
 
 ```{r}
 library(tsibble)
@@ -55,7 +53,7 @@ z |>
 | Daily | `as_date()`, `ymd()` |
 | Sub-Daily | `as_datetime()`, `ymd_hms()` |
 
-## The key variables
+# The key variables
 
 ```{r}
 olympic_running
@@ -70,7 +68,7 @@ olympic_running |> distinct(Sex)
 ```{r}
 olympic_running |> distinct(Length)
 ```
-## Working with `tsibble` objects
+# Working with `tsibble` objects
 
 `dplyr` functions include mutate()`, `filter()`, `select()`, `summarise()`
 
@@ -80,14 +78,14 @@ PBS
 
 This data set contains monthly data on Medicare Australia prescription data from July 1991 to June 2008.
 
-### `select()`
+## `select()`
 
 ```{r}
 PBS |>
   filter(ATC2 == "A10")
 ```
 
-### `filter()`
+## `filter()`
 
 ```{r}
 PBS |>
@@ -97,7 +95,7 @@ PBS |>
 
 Note that `Month`, `Concession` and `Type` would be returned automatically to ensure that each row contains a unique combination of index and keys.
 
-### `summarise()`
+## `summarise()`
 
 ```{r}
 PBS |>
@@ -106,7 +104,7 @@ PBS |>
   summarise(TotalC = sum(Cost))
 ```
 
-### `mutate()`
+## `mutate()`
 
 Used to create new variables
 
@@ -129,7 +127,7 @@ PBS |>
 ```
 
 
-## Read a csv file and convert to a `tsibble`
+# Read a csv file and convert to a `tsibble`
 
 ```{r}
 prison <- readr::read_csv("https://OTexts.com/fpp3/extrafiles/prison_population.csv")
@@ -148,7 +146,7 @@ prison <- prison |>
 prison
 ```
 
-## The seasonal period
+# The seasonal period
 
 Common periods for time intervals
 
@@ -163,8 +161,3 @@ Common periods for time intervals
 | Seconds | 60 | 3600 | 86400 | 6048000 | 31557600 |
 
 More complicated and unusual seasonal patterns can be specified using `period()` in the `lubridate` package.
-
-
-
-
-
