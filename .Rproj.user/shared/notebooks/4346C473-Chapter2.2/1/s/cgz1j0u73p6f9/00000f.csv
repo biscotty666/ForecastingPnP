@@ -1,0 +1,4 @@
+"0","a10 |>"
+"0","  ACF(Cost, lag_max = 48) |>"
+"0","  autoplot() +"
+"0","  labs(title = ""Australian antidiabetic drug sales"")"

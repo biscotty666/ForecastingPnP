@@ -1,0 +1,5 @@
+"0","set.seed(30)"
+"0","y <- tsibble(sample = 1:50, "
+"0","             wn = rnorm(50), "
+"0","             index = sample)"
+"0","y |> autoplot(wn) + labs(title = ""White noise"", y = """")"
