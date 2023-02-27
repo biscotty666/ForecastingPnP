@@ -14,6 +14,11 @@ Chapter 3 Time series decomposition
     id="toc-mathematical-transformations">Mathematical transformations</a>
 - <a href="#32-time-series-components"
   id="toc-32-time-series-components">3.2 Time series components</a>
+  - <a href="#example-employment-in-the-us-retail-sector"
+    id="toc-example-employment-in-the-us-retail-sector">Example: Employment
+    in the US retail sector</a>
+  - <a href="#seasonally-adjusted-data"
+    id="toc-seasonally-adjusted-data">Seasonally adjusted data</a>
 
 ``` r
 library(fpp3)
@@ -172,3 +177,139 @@ aus_production |>
 ![](Chapter3_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
 # 3.2 Time series components
+
+- Additive decomposition
+
+Most appropriate if the magnitude of the seasonal fluctuations, or the
+variation around the trend-cycle, does not vary with the level of the
+time series.
+
+$$
+y_{t} = S_{t} + T_{t} + R_t
+$$
+
+where $y_t$ is the data, $S_t$ is the seasonal component, $T_t$ is the
+trend-cycle component and $R_t$ is the remainder component all at period
+$t$.
+
+- Multiplicative decomposition
+
+Appropriate whenthe variation in the seasonal pattern, or the variation
+around the trend-cycle, appears to be proportional to the level of the
+time series. This is common with economic time series.
+
+$$
+y_{t} = S_{t} \times T_{t} \times R_t
+$$
+
+Alternatively `log()` can first be used to stabilize the variation over
+time and then the additive decomposition can be used to calculate the
+multiplicative decomposition since
+
+$$
+y_{t} = S_{t} \times T_{t} \times R_t \quad\text{is equivalent to}\quad
+  \log y_{t} = \log S_{t} + \log T_{t} + \log R_t
+$$
+
+## Example: Employment in the US retail sector
+
+``` r
+us_retail_employment <- us_employment |>
+  filter(year(Month) >= 1990, Title == "Retail Trade") |>
+  select(-Series_ID)
+us_retail_employment
+```
+
+    ## # A tsibble: 357 x 3 [1M]
+    ##       Month Title        Employed
+    ##       <mth> <chr>           <dbl>
+    ##  1 1990 Jan Retail Trade   13256.
+    ##  2 1990 Feb Retail Trade   12966.
+    ##  3 1990 Mar Retail Trade   12938.
+    ##  4 1990 Apr Retail Trade   13012.
+    ##  5 1990 May Retail Trade   13108.
+    ##  6 1990 Jun Retail Trade   13183.
+    ##  7 1990 Jul Retail Trade   13170.
+    ##  8 1990 Aug Retail Trade   13160.
+    ##  9 1990 Sep Retail Trade   13113.
+    ## 10 1990 Oct Retail Trade   13185.
+    ## # … with 347 more rows
+
+``` r
+autoplot(us_retail_employment, Employed) +
+  labs(y = "Persons (thousands)",
+       title = "Total employment in US retail")
+```
+
+![](Chapter3_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+
+We can decompose this with the **STL** method discussed later.
+
+``` r
+dcmp <- us_retail_employment |>
+  model(stl = STL(Employed))
+components(dcmp)
+```
+
+    ## # A dable: 357 x 7 [1M]
+    ## # Key:     .model [1]
+    ## # :        Employed = trend + season_year + remainder
+    ##    .model    Month Employed  trend season_year remainder season_adjust
+    ##    <chr>     <mth>    <dbl>  <dbl>       <dbl>     <dbl>         <dbl>
+    ##  1 stl    1990 Jan   13256. 13288.      -33.0      0.836        13289.
+    ##  2 stl    1990 Feb   12966. 13269.     -258.     -44.6          13224.
+    ##  3 stl    1990 Mar   12938. 13250.     -290.     -22.1          13228.
+    ##  4 stl    1990 Apr   13012. 13231.     -220.       1.05         13232.
+    ##  5 stl    1990 May   13108. 13211.     -114.      11.3          13223.
+    ##  6 stl    1990 Jun   13183. 13192.      -24.3     15.5          13207.
+    ##  7 stl    1990 Jul   13170. 13172.      -23.2     21.6          13193.
+    ##  8 stl    1990 Aug   13160. 13151.       -9.52    17.8          13169.
+    ##  9 stl    1990 Sep   13113. 13131.      -39.5     22.0          13153.
+    ## 10 stl    1990 Oct   13185. 13110.       61.6     13.2          13124.
+    ## # … with 347 more rows
+
+This output forms a “dabble” or decomposition table.
+
+``` r
+components(dcmp) |>
+  as_tsibble() |>
+  autoplot(Employed, colour = "gray") +
+  geom_line(aes(y = trend), colour = "#D55E00") +
+  labs(
+    y = "Persons (thousands)",
+    title = "Total employment in US retail"
+  )
+```
+
+![](Chapter3_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+
+``` r
+components(dcmp) |> autoplot()
+```
+
+![](Chapter3_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+
+The gray bars on the left indicate the relative scale of each graph.
+
+## Seasonally adjusted data
+
+Seasonally adjusted data is what’s left after removing the seasonal
+component from the data, either by subraction or division.
+
+``` r
+components(dcmp) |>
+  as_tsibble() |>
+  autoplot(Employed, colour = "gray") +
+  geom_line(aes(y=season_adjust), colour = "#0072B2") +
+  labs(y = "Persons (thousands)",
+       title = "Total employment in US retail")
+```
+
+![](Chapter3_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+
+Seasonally adjusted data is useful for unemployment data, for example,
+because it’s the non-seasonal aspects which are usually more
+interesting.
+
+Remember that seasonally adjusted components still contain the trend and
+remainder.

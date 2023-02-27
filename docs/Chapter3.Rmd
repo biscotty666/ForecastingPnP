@@ -124,6 +124,85 @@ aus_production |>
 
 # 3.2 Time series components
 
+- Additive decomposition
 
+Most appropriate if the magnitude of the seasonal fluctuations, or the variation around the trend-cycle, does not vary with the level of the time series.
 
+$$
+y_{t} = S_{t} + T_{t} + R_t
+$$
 
+where $y_t$ is the data, $S_t$ is the seasonal component, $T_t$ is the trend-cycle component and $R_t$ is the remainder component all at period $t$.
+
+- Multiplicative decomposition
+
+Appropriate whenthe variation in the seasonal pattern, or the variation around the trend-cycle, appears to be proportional to the level of the time series. This is common with economic time series.
+
+$$
+y_{t} = S_{t} \times T_{t} \times R_t
+$$
+
+Alternatively `log()` can first be used to stabilize the variation over time and then the additive decomposition can be used to calculate the multiplicative decomposition since 
+
+$$
+y_{t} = S_{t} \times T_{t} \times R_t \quad\text{is equivalent to}\quad
+  \log y_{t} = \log S_{t} + \log T_{t} + \log R_t
+$$
+
+## Example: Employment in the US retail sector
+
+```{r}
+us_retail_employment <- us_employment |>
+  filter(year(Month) >= 1990, Title == "Retail Trade") |>
+  select(-Series_ID)
+us_retail_employment
+```
+```{r}
+autoplot(us_retail_employment, Employed) +
+  labs(y = "Persons (thousands)",
+       title = "Total employment in US retail")
+```
+
+We can decompose this with the **STL** method discussed later.
+
+```{r}
+dcmp <- us_retail_employment |>
+  model(stl = STL(Employed))
+components(dcmp)
+```
+
+This output forms a "dabble" or decomposition table. 
+
+```{r}
+components(dcmp) |>
+  as_tsibble() |>
+  autoplot(Employed, colour = "gray") +
+  geom_line(aes(y = trend), colour = "#D55E00") +
+  labs(
+    y = "Persons (thousands)",
+    title = "Total employment in US retail"
+  )
+```
+
+```{r}
+components(dcmp) |> autoplot()
+```
+
+The gray bars on the left indicate the relative scale of each graph.
+
+## Seasonally adjusted data
+
+Seasonally adjusted data is what's left after removing the seasonal component from the data, either by subraction or division.
+
+```{r}
+components(dcmp) |>
+  as_tsibble() |>
+  autoplot(Employed, colour = "gray") +
+  geom_line(aes(y=season_adjust), colour = "#0072B2") +
+  labs(y = "Persons (thousands)",
+       title = "Total employment in US retail")
+```
+
+Seasonally adjusted data is useful for unemployment data, for example, because it's the non-seasonal aspects which are usually more interesting.
+
+Remember that seasonally adjusted components still contain the trend and remainder.

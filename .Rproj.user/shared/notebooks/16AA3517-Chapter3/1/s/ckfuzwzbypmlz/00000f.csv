@@ -1,0 +1,6 @@
+"0","components(dcmp) |>"
+"0","  as_tsibble() |>"
+"0","  autoplot(Employed, colour = ""gray"") +"
+"0","  geom_line(aes(y=season_adjust), colour = ""#0072B2"") +"
+"0","  labs(y = ""Persons (thousands)"","
+"0","       title = ""Total employment in US retail"")"

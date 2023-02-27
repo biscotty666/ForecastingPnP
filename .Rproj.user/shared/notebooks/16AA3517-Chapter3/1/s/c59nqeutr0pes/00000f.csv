@@ -1,0 +1,4 @@
+"0","us_retail_employment <- us_employment |>"
+"0","  filter(year(Month) >= 1990, Title == ""Retail Trade"") |>"
+"0","  select(-Series_ID)"
+"0","us_retail_employment"

@@ -1,0 +1,1 @@
+{"classes":["dcmp_ts","tbl_ts","tbl_df","tbl","data.frame"],"nrow":357,"ncol":7,"summary":[["357 x 7 [1M]"],[".model [1]"],["Employed = trend + season_year + remainder"]]}

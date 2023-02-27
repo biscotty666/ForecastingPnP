@@ -1,0 +1,3 @@
+"0","dcmp <- us_retail_employment |>"
+"0","  model(stl = STL(Employed))"
+"0","components(dcmp)"

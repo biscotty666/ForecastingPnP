@@ -1,0 +1,3 @@
+"0","autoplot(us_retail_employment, Employed) +"
+"0","  labs(y = ""Persons (thousands)"","
+"0","       title = ""Total employment in US retail"")"
