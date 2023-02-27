@@ -70,7 +70,7 @@ olympic_running |> distinct(Sex)
 ```{r}
 olympic_running |> distinct(Length)
 ```
-# Working with `tsibble` objects
+## Working with `tsibble` objects
 
 `dplyr` functions include mutate()`, `filter()`, `select()`, `summarise()`
 
