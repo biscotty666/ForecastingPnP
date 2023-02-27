@@ -14,6 +14,11 @@ Ch 2: Time series graphics
     - <a href="#filter" id="toc-filter"><code>filter()</code></a>
     - <a href="#summarise" id="toc-summarise"><code>summarise()</code></a>
     - <a href="#mutate" id="toc-mutate"><code>mutate()</code></a>
+  - <a href="#read-a-csv-file-and-convert-to-a-tsibble"
+    id="toc-read-a-csv-file-and-convert-to-a-tsibble">Read a csv file and
+    convert to a <code>tsibble</code></a>
+  - <a href="#the-seasonal-period" id="toc-the-seasonal-period">The seasonal
+    period</a>
 
 # 2.1 `tsibble` objects
 
@@ -299,3 +304,85 @@ PBS |>
   summarise(TotalC = sum(Cost)) |>
   mutate(Cost = TotalC/1e6) -> a10
 ```
+
+## Read a csv file and convert to a `tsibble`
+
+``` r
+prison <- readr::read_csv("https://OTexts.com/fpp3/extrafiles/prison_population.csv")
+```
+
+    ## Rows: 3072 Columns: 6
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr  (4): State, Gender, Legal, Indigenous
+    ## dbl  (1): Count
+    ## date (1): Date
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
+prison
+```
+
+    ## # A tibble: 3,072 × 6
+    ##    Date       State Gender Legal     Indigenous Count
+    ##    <date>     <chr> <chr>  <chr>     <chr>      <dbl>
+    ##  1 2005-03-01 ACT   Female Remanded  ATSI           0
+    ##  2 2005-03-01 ACT   Female Remanded  Non-ATSI       2
+    ##  3 2005-03-01 ACT   Female Sentenced ATSI           0
+    ##  4 2005-03-01 ACT   Female Sentenced Non-ATSI       5
+    ##  5 2005-03-01 ACT   Male   Remanded  ATSI           7
+    ##  6 2005-03-01 ACT   Male   Remanded  Non-ATSI      58
+    ##  7 2005-03-01 ACT   Male   Sentenced ATSI           5
+    ##  8 2005-03-01 ACT   Male   Sentenced Non-ATSI     101
+    ##  9 2005-03-01 NSW   Female Remanded  ATSI          51
+    ## 10 2005-03-01 NSW   Female Remanded  Non-ATSI     131
+    ## # … with 3,062 more rows
+
+When converting the table to a `tsibble` object we define the index and
+key columns. Note that the data is quarterly but is stored as individual
+days.
+
+``` r
+prison <- prison |>
+  mutate(Quarter = yearquarter(Date)) |>
+  select(-Date) |>
+  as_tsibble(key = c(State, Gender, Legal, Indigenous),
+             index = Quarter)
+
+prison
+```
+
+    ## # A tsibble: 3,072 x 6 [1Q]
+    ## # Key:       State, Gender, Legal, Indigenous [64]
+    ##    State Gender Legal    Indigenous Count Quarter
+    ##    <chr> <chr>  <chr>    <chr>      <dbl>   <qtr>
+    ##  1 ACT   Female Remanded ATSI           0 2005 Q1
+    ##  2 ACT   Female Remanded ATSI           1 2005 Q2
+    ##  3 ACT   Female Remanded ATSI           0 2005 Q3
+    ##  4 ACT   Female Remanded ATSI           0 2005 Q4
+    ##  5 ACT   Female Remanded ATSI           1 2006 Q1
+    ##  6 ACT   Female Remanded ATSI           1 2006 Q2
+    ##  7 ACT   Female Remanded ATSI           1 2006 Q3
+    ##  8 ACT   Female Remanded ATSI           0 2006 Q4
+    ##  9 ACT   Female Remanded ATSI           0 2007 Q1
+    ## 10 ACT   Female Remanded ATSI           1 2007 Q2
+    ## # … with 3,062 more rows
+
+## The seasonal period
+
+Common periods for time intervals
+
+| Data     | Minute | Hour | Day   | Week    | Year     |
+|----------|--------|------|-------|---------|----------|
+| Quarters |        |      |       |         | 4        |
+| Months   |        |      |       |         | 12       |
+| Weeks    |        |      |       |         | 52       |
+| Days     |        |      |       | 7       | 365.25   |
+| Hours    |        |      | 24    | 168     | 8766     |
+| Minutes  |        | 60   | 1440  | 10080   | 525960   |
+| Seconds  | 60     | 3600 | 86400 | 6048000 | 31557600 |
+
+More complicated and unusual seasonal patterns can be specified using
+`period()` in the `lubridate` package.

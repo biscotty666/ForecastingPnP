@@ -129,7 +129,40 @@ PBS |>
 ```
 
 
+## Read a csv file and convert to a `tsibble`
 
+```{r}
+prison <- readr::read_csv("https://OTexts.com/fpp3/extrafiles/prison_population.csv")
+prison
+```
+
+When converting the table to a `tsibble` object we define the index and key columns. Note that the data is quarterly but is stored as individual days.
+
+```{r}
+prison <- prison |>
+  mutate(Quarter = yearquarter(Date)) |>
+  select(-Date) |>
+  as_tsibble(key = c(State, Gender, Legal, Indigenous),
+             index = Quarter)
+
+prison
+```
+
+## The seasonal period
+
+Common periods for time intervals
+
+| Data    | Minute    | Hour    | Day   |   Week    | Year      |
+|---------|-----------|---------|-------|-----------|------     |
+| Quarters |    |   |   |   |4|
+| Months |    |   |   |   |12|
+| Weeks |    |   |   |   |52|
+| Days |    |   |   | 7 | 365.25 |
+| Hours |    |   | 24 | 168 | 8766 |
+| Minutes |    | 60 | 1440 | 10080 | 525960 |
+| Seconds | 60 | 3600 | 86400 | 6048000 | 31557600 |
+
+More complicated and unusual seasonal patterns can be specified using `period()` in the `lubridate` package.
 
 
 

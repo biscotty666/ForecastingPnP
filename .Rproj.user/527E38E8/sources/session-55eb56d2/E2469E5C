@@ -1,9 +1,9 @@
 {
     "id": "E2469E5C",
-    "path": "~/Learning/R/FPnP/docs/Chapter2.Rmd",
-    "project_path": "docs/Chapter2.Rmd",
+    "path": "~/Learning/R/FPnP/docs/Chapter2.1.Rmd",
+    "project_path": "docs/Chapter2.1.Rmd",
     "type": "r_markdown",
-    "hash": "844928275",
+    "hash": "1430091883",
     "contents": "",
     "dirty": false,
     "created": 1677477972759.0,
@@ -14,15 +14,15 @@
         "chunk_output_type": "inline",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "72,2",
-        "scrollLine": "68"
+        "cursorPosition": "1,14",
+        "scrollLine": "0"
     },
     "folds": "",
-    "lastKnownWriteTime": 1677477917,
+    "lastKnownWriteTime": 1677479188,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1677477974405,
+    "last_content_update": 1677479188103,
     "read_only": false,
     "read_only_alternatives": []
 }

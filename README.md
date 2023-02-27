@@ -4,4 +4,4 @@ From Hyndman, R.J., & Athanasopoulos, G. (2021) Forecasting: principles and prac
 
 My notes
 
-[Chapter 2](docs/Chapter2.md)
+[Chapter 2.1](docs/Chapter2.1.md)

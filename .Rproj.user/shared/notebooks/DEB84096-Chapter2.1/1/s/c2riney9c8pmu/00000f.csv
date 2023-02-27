@@ -1,0 +1,7 @@
+"0","prison <- prison |>"
+"0","  mutate(Quarter = yearquarter(Date)) |>"
+"0","  select(-Date) |>"
+"0","  as_tsibble(key = c(State, Gender, Legal, Indigenous),"
+"0","             index = Quarter)"
+"0",""
+"0","prison"
