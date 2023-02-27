@@ -1,0 +1,5 @@
+"0","gafa_stock |>"
+"0","  autoplot(Close) +"
+"0","  labs(title = ""Closing price for various stocks"","
+"0","       subtitle = ""2014-2019"","
+"0","       y = """")"

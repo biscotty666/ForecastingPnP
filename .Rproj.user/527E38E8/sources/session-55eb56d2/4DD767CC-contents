@@ -5,3 +5,4 @@ From Hyndman, R.J., & Athanasopoulos, G. (2021) Forecasting: principles and prac
 My notes
 
 [Chapter 2 Time Series Graphics](docs/Chapter2.md)
+[Chapter 2 Exercises](exercises/Ch2Exercises.md)

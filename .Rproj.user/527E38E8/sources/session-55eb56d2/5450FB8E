@@ -1,28 +1,28 @@
 {
-    "id": "E2469E5C",
-    "path": "~/Learning/R/FPnP/docs/Chapter2.Rmd",
-    "project_path": "docs/Chapter2.Rmd",
+    "id": "5450FB8E",
+    "path": "~/Learning/R/FPnP/exercises/Ch2Exercises.Rmd",
+    "project_path": "exercises/Ch2Exercises.Rmd",
     "type": "r_markdown",
-    "hash": "1966025297",
+    "hash": "2239728796",
     "contents": "",
     "dirty": false,
-    "created": 1677477972759.0,
+    "created": 1677521259855.0,
     "source_on_save": false,
-    "relative_order": 3,
+    "relative_order": 4,
     "properties": {
         "tempName": "Untitled1",
         "chunk_output_type": "inline",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "440,1",
-        "scrollLine": "439"
+        "cursorPosition": "11,13",
+        "scrollLine": "0"
     },
     "folds": "",
-    "lastKnownWriteTime": 1677517199,
+    "lastKnownWriteTime": 1677525906,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1677517199726,
+    "last_content_update": 1677525906713,
     "read_only": false,
     "read_only_alternatives": []
 }

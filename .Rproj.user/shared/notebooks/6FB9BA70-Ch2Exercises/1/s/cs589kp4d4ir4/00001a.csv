@@ -1,0 +1,6 @@
+"0","PBS |> "
+"0","  select(Month, Cost) |>"
+"0","  summarise(TotalCost = sum(Cost)) |>"
+"0","  autoplot(TotalCost) +"
+"0","    labs(title = ""Cost of various pharmaceuticals"","
+"0","       y = """")"

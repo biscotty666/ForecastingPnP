@@ -1,0 +1,2 @@
+"0","aapl_stock |>"
+"0","  filter(Close == aapl_stock_max)"

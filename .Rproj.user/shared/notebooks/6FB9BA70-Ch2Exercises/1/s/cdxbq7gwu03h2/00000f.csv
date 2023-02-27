@@ -1,0 +1,6 @@
+"0","aapl_stock_max <- max(aapl_stock[,""Close""])"
+"0","aapl_stock_max"
+"1","[1]"
+"1"," 232.07"
+"1","
+"

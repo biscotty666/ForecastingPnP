@@ -1,0 +1,4 @@
+"0","fb_stock <- filter(gafa_stock, Symbol == ""FB"")"
+"0","max(fb_stock[,""Close""]) -> fb_stock_max"
+"0","fb_stock |>"
+"0","  filter(Close == fb_stock_max)"

@@ -1,0 +1,4 @@
+"0","goog_stock <- filter(gafa_stock, Symbol == ""GOOG"")"
+"0","max(goog_stock[,""Close""]) -> goog_stock_max"
+"0","goog_stock |>"
+"0","  filter(Close == goog_stock_max)"

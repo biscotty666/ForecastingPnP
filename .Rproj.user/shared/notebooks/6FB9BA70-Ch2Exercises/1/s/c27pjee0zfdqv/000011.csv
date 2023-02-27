@@ -1,0 +1,3 @@
+"0","vic_elec |>"
+"0","  autoplot(Temperature) +"
+"0","  labs(title = ""Temperatures in Melborne"", y="""")"

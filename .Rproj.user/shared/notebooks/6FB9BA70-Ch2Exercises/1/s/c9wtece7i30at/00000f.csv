@@ -1,0 +1,4 @@
+"0","pelt |>"
+"0","  autoplot(Lynx) +"
+"0","  labs(title = ""Annual lynx pelts harvested"","
+"0","       y = ""Year"")"

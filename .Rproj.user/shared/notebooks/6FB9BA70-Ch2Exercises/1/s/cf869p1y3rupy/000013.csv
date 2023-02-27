@@ -1,0 +1,4 @@
+"0","amzn_stock <- filter(gafa_stock, Symbol == ""AMZN"")"
+"0","max(amzn_stock[,""Close""]) -> amzn_stock_max"
+"0","amzn_stock |>"
+"0","  filter(Close == amzn_stock_max)"
