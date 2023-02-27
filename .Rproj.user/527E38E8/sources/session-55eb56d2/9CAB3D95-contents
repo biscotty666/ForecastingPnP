@@ -1,0 +1,53 @@
+---
+title: "2.1 tsibble objects"
+output: html_notebook
+---
+
+The index variable
+
+```{r}
+library(fpp3)
+```
+
+
+```{r}
+library(tsibble)
+y <- tsibble(
+  Year = 2015:2019,
+  Observation = c(123, 39, 78, 52, 110),
+  index = Year
+)
+```
+
+`tsibble` introduces temporal structure to tidy data frames.
+
+A regular `tibble` can be converted to a `tsibble` object
+
+```{r}
+z <- tibble(
+  Month = c("2019 Jan", "2019 Feb", "2019 Mar", "2019 Apr", "2019 May"),
+  Observation = c(50, 23, 34, 30, 25)
+)
+z
+```
+
+```{r}
+z |>
+  mutate(Month = yearmonth(Month)) |>
+  as_tsibble(index = Month)
+```
+
+| Frequency | Function |
+|--------|-----------------|
+| Annual | start:end |
+| Quarterly | `yearquarter()` |
+| Monthly | `yearmonth()` |
+| Weekly | `yearweek()` |
+| Daily | `as_date()`, `ymd()` |
+| Sub-Daily | `as_datetime()`, `ymd_hms()` |
+
+
+
+
+
+

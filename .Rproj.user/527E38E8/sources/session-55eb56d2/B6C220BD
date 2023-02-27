@@ -1,0 +1,28 @@
+{
+    "id": "B6C220BD",
+    "path": "~/Learning/R/FPnP/docs/Chapter2.Rmd",
+    "project_path": "docs/Chapter2.Rmd",
+    "type": "r_markdown",
+    "hash": "1209355634",
+    "contents": "",
+    "dirty": false,
+    "created": 1677474756853.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "tempName": "Untitled1",
+        "chunk_output_type": "inline",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "120,0",
+        "scrollLine": "119"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1677477375,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1677477375202,
+    "read_only": false,
+    "read_only_alternatives": []
+}
