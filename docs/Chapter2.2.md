@@ -323,7 +323,7 @@ $$
 r = \frac{\sum (x_{t} - \bar{x})(y_{t}-\bar{y})}{\sqrt{\sum(x_{t}-\bar{x})^2}\sqrt{\sum(y_{t}-\bar{y})^2}}
 $$
 
-for $r \in \mathbb{R} | -1 <r<1$.
+for $r$ between -1 and 1.
 
 <img src="https://otexts.com/fpp3/fpp_files/figure-html/corr-1.png" />
 
