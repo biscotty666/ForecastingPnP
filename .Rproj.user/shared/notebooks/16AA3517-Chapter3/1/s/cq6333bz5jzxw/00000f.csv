@@ -1,0 +1,7 @@
+"0","us_retail_employment |>"
+"0","  model("
+"0","    classical_decomposition(Employed, type = ""multiplicative"")"
+"0","  ) |>"
+"0","  components() |>"
+"0","  autoplot() +"
+"0","  labs(title = ""Classical multiplicative decomposition of total US retail employment"")"

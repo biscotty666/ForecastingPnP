@@ -34,6 +34,15 @@ Chapter 3 Time series decomposition
     Employment in the US retail sector</a>
   - <a href="#weighted-moving-averages"
     id="toc-weighted-moving-averages">Weighted moving averages</a>
+- <a href="#classical-decomposition"
+  id="toc-classical-decomposition">Classical decomposition</a>
+  - <a href="#additive-decomposition"
+    id="toc-additive-decomposition">Additive decomposition</a>
+  - <a href="#multiplicative-decomposition"
+    id="toc-multiplicative-decomposition">Multiplicative decomposition</a>
+  - <a href="#comments-on-classical-decomposition"
+    id="toc-comments-on-classical-decomposition">Comments on classical
+    decomposition</a>
 
 ``` r
 library(fpp3)
@@ -506,3 +515,96 @@ $$
 
 where $k=(m-1)/2$ and the weights are given by $[a_{-k},\dots,a_k]$ and
 the **weights must sum to one** and that they are symmetric.
+
+# Classical decomposition
+
+## Additive decomposition
+
+1.  Compute the trend-cycle component $\hat{T}_t$ using a $2\timesm$-MA
+    if $m$ is even and $m$-MA if $m$ is odd.
+
+2.  Calculate the De-trended Series: $y_t-T_t$
+
+3.  Estimate seasonal component $\hat{S}_t$. To estimate the seasonal
+    component for each season, simply average the detrended values for
+    that season. For example, with monthly data, the seasonal component
+    for March is the average of all the detrended March values in the
+    data. These seasonal component values are then adjusted to ensure
+    that they add to zero. The seasonal component is obtained by
+    stringing together these monthly values, and then replicating the
+    sequence for each year of data.
+
+4.  Remainder: $\hat{R}_t=y_t-\hat{T}_t-\hat{S}_t$
+
+``` r
+us_retail_employment |>
+  model(
+    classical_decomposition(Employed, type = "additive")
+  ) |>
+  components() |>
+  autoplot() +
+  labs(title = "Classical additive decomposition of total US retail employment")
+```
+
+    ## Warning: Removed 6 rows containing missing values (`geom_line()`).
+
+![](Chapter3_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
+
+## Multiplicative decomposition
+
+Similar to additive.
+
+1.  Estimate Trend: $\hat{T}_t$
+
+2.  Calculate the De-trended Series: $y_t/\hat{T}_t$
+
+3.  Estimate Seasonal Components: $\hat{S}_t$
+
+- Remainder: $R_t=\frac{y_t}{T_t \times S_t}$
+
+4.  $\hat{R}=y_t/(\hat{T}_t\hat{S}_t)$
+
+``` r
+us_retail_employment |>
+  model(
+    classical_decomposition(Employed, type = "multiplicative")
+  ) |>
+  components() |>
+  autoplot() +
+  labs(title = "Classical multiplicative decomposition of total US retail employment")
+```
+
+    ## Warning: Removed 6 rows containing missing values (`geom_line()`).
+
+![](Chapter3_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
+
+## Comments on classical decomposition
+
+While classical decomposition is still widely used, it is not
+recommended, as there are now several much better methods. Some of the
+problems with classical decomposition are summarized below.
+
+- The estimate of the trend-cycle is unavailable for the first few and
+  last few observations. For example, if $m=12$, there is no trend-cycle
+  estimate for the first six or the last six observations. Consequently,
+  there is also no estimate of the remainder component for the same time
+  periods.
+
+- The trend-cycle estimate tends to over-smooth rapid rises and falls in
+  the data.
+
+- Classical decomposition methods assume that the seasonal component
+  repeats from year to year. For many series, this is a reasonable
+  assumption, but for some longer series it is not. For example,
+  electricity demand patterns have changed over time as air conditioning
+  has become more widespread. In many locations, the seasonal usage
+  pattern from several decades ago had its maximum demand in winter (due
+  to heating), while the current seasonal pattern has its maximum demand
+  in summer (due to air conditioning). Classical decomposition methods
+  are unable to capture these seasonal changes over time.
+
+- Occasionally, the values of the time series in a small number of
+  periods may be particularly unusual. For example, the monthly air
+  passenger traffic may be affected by an industrial dispute, making the
+  traffic during the dispute different from usual. The classical method
+  is not robust to these kinds of unusual values.

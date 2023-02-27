@@ -3,7 +3,7 @@
     "path": "~/Learning/R/FPnP/docs/Chapter3.Rmd",
     "project_path": "docs/Chapter3.Rmd",
     "type": "r_markdown",
-    "hash": "1717444636",
+    "hash": "2948167982",
     "contents": "",
     "dirty": false,
     "created": 1677529400132.0,
@@ -14,15 +14,15 @@
         "chunk_output_type": "inline",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "326,132",
-        "scrollLine": "317"
+        "cursorPosition": "384,2",
+        "scrollLine": "376"
     },
     "folds": "",
-    "lastKnownWriteTime": 1677538238,
+    "lastKnownWriteTime": 1677539699,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1677538238099,
+    "last_content_update": 1677539699713,
     "read_only": false,
     "read_only_alternatives": []
 }
