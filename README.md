@@ -8,4 +8,6 @@ My notes
 
 [Chapter 3 Time Series Decomposition](docs/Chapter3.md)
 
+[Chapter 4 Time Series Features](docs/Chapter4.md)
+
 [Chapter 2 Exercises](exercises/Ch2Exercises.md)

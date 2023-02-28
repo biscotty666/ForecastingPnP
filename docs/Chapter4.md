@@ -284,8 +284,8 @@ later in the book.
   seasonal data, it also includes the partial autocorrelation at the
   first seasonal lag.
 - `unitroot_kpss` gives the Kwiatkowski-Phillips-Schmidt-Shin (KPSS)
-  statistic for testing if a series is stationary, and the corresponding
-  p-value. This test is discussed in Section 9.1.
+  statistic for **testing if a series is stationary**, and the
+  corresponding p-value. This test is discussed in Section 9.1.
 - unitroot_pp gives the Phillips-Perron statistic for testing if a
   **series is non-stationary**, and the corresponding p-value.
 - `unitroot_ndiffs` gives the **number of differences required to lead
@@ -326,3 +326,185 @@ later in the book.
   transformation using the Guerrero method (discussed in Section 3.1).
 
 # 4.5 Exploring Australian tourism data
+
+All of the features in the `feasts` package can be computed in one line.
+
+``` r
+tourism_features <- tourism |>
+  features(Trips, feature_set(pkgs = "feasts"))
+```
+
+    ## Warning: `n_flat_spots()` was deprecated in feasts 0.1.5.
+    ## ℹ Please use `longest_flat_spot()` instead.
+    ## ℹ The deprecated feature was likely used in the fabletools package.
+    ##   Please report the issue at <]8;;https://github.com/tidyverts/fabletools/issueshttps://github.com/tidyverts/fabletools/issues]8;;>.
+
+``` r
+tourism_features
+```
+
+    ## # A tibble: 304 × 51
+    ##    Region  State Purpose trend…¹ seaso…² seaso…³ seaso…⁴ spiki…⁵ linea…⁶ curva…⁷
+    ##    <chr>   <chr> <chr>     <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>
+    ##  1 Adelai… Sout… Busine…   0.464   0.407       3       1 1.58e+2  -5.31   71.6  
+    ##  2 Adelai… Sout… Holiday   0.554   0.619       1       2 9.17e+0  49.0    78.7  
+    ##  3 Adelai… Sout… Other     0.746   0.202       2       1 2.10e+0  95.1    43.4  
+    ##  4 Adelai… Sout… Visiti…   0.435   0.452       1       3 5.61e+1  34.6    71.4  
+    ##  5 Adelai… Sout… Busine…   0.464   0.179       3       0 1.03e-1   0.968  -3.22 
+    ##  6 Adelai… Sout… Holiday   0.528   0.296       2       1 1.77e-1  10.5    24.0  
+    ##  7 Adelai… Sout… Other     0.593   0.404       2       2 4.44e-4   4.28    3.19 
+    ##  8 Adelai… Sout… Visiti…   0.488   0.254       0       3 6.50e+0  34.2    -0.529
+    ##  9 Alice … Nort… Busine…   0.534   0.251       0       1 1.69e-1  23.8    19.5  
+    ## 10 Alice … Nort… Holiday   0.381   0.832       3       1 7.39e-1 -19.6    10.5  
+    ## # … with 294 more rows, 41 more variables: stl_e_acf1 <dbl>, stl_e_acf10 <dbl>,
+    ## #   acf1 <dbl>, acf10 <dbl>, diff1_acf1 <dbl>, diff1_acf10 <dbl>,
+    ## #   diff2_acf1 <dbl>, diff2_acf10 <dbl>, season_acf1 <dbl>, pacf5 <dbl>,
+    ## #   diff1_pacf5 <dbl>, diff2_pacf5 <dbl>, season_pacf <dbl>,
+    ## #   zero_run_mean <dbl>, nonzero_squared_cv <dbl>, zero_start_prop <dbl>,
+    ## #   zero_end_prop <dbl>, lambda_guerrero <dbl>, kpss_stat <dbl>,
+    ## #   kpss_pvalue <dbl>, pp_stat <dbl>, pp_pvalue <dbl>, ndiffs <int>, …
+
+This gives 48 features for every combination of the three key variables
+(`Region`, `State` and `Purpose`). We can treat this `tibble` like any
+data set and analyse it to find interesting observations or groups of
+observations.
+
+We’ve already seen how we can plot one feature against another (Section
+4.3). We can also do pairwise plots of groups of features. In Figure
+4.3, for example, we show all features that involve seasonality, along
+with the `Purpose` variable.
+
+``` r
+library(glue)
+
+tourism_features |>
+  select_at(vars(contains("season"), Purpose)) |>
+  mutate(
+    seasonal_peak_year = seasonal_peak_year + 
+      4*(seasonal_peak_year == 0),
+    seasonal_trough_year = seasonal_trough_year +
+      4*(seasonal_trough_year == 0),
+    seasonal_peak_year = glue("Q{seasonal_peak_year}"),
+    seasonal_trough_year = glue("Q{seasonal_trough_year}"),
+  ) |>
+  GGally::ggpairs(mapping = aes(colour = Purpose))
+```
+
+![](Chapter4_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+
+- The seasonality variables are all positively correlated
+- The top left and bottom right show the strong relation between
+  seasonality and holidays
+- The Q1 and Q3 peaks in business travel are clearly seen in the bottom
+  row
+
+It is difficult to explore more than a handful of variables in this way.
+A useful way to handle many more variables is to use a dimension
+reduction technique such as principal components. This gives linear
+combinations of variables that explain the most variation in the
+original data. We can compute the principal components of the tourism
+features as follows.
+
+``` r
+library(broom)
+pcs <- tourism_features |>
+  select(-State, -Region, -Purpose) |>
+  prcomp(scale = TRUE) |>
+  augment(tourism_features)
+pcs
+```
+
+    ## # A tibble: 304 × 100
+    ##    .rowna…¹ Region State Purpose trend…² seaso…³ seaso…⁴ seaso…⁵ spiki…⁶ linea…⁷
+    ##    <chr>    <chr>  <chr> <chr>     <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>
+    ##  1 1        Adela… Sout… Busine…   0.464   0.407       3       1 1.58e+2  -5.31 
+    ##  2 2        Adela… Sout… Holiday   0.554   0.619       1       2 9.17e+0  49.0  
+    ##  3 3        Adela… Sout… Other     0.746   0.202       2       1 2.10e+0  95.1  
+    ##  4 4        Adela… Sout… Visiti…   0.435   0.452       1       3 5.61e+1  34.6  
+    ##  5 5        Adela… Sout… Busine…   0.464   0.179       3       0 1.03e-1   0.968
+    ##  6 6        Adela… Sout… Holiday   0.528   0.296       2       1 1.77e-1  10.5  
+    ##  7 7        Adela… Sout… Other     0.593   0.404       2       2 4.44e-4   4.28 
+    ##  8 8        Adela… Sout… Visiti…   0.488   0.254       0       3 6.50e+0  34.2  
+    ##  9 9        Alice… Nort… Busine…   0.534   0.251       0       1 1.69e-1  23.8  
+    ## 10 10       Alice… Nort… Holiday   0.381   0.832       3       1 7.39e-1 -19.6  
+    ## # … with 294 more rows, 90 more variables: curvature <dbl>, stl_e_acf1 <dbl>,
+    ## #   stl_e_acf10 <dbl>, acf1 <dbl>, acf10 <dbl>, diff1_acf1 <dbl>,
+    ## #   diff1_acf10 <dbl>, diff2_acf1 <dbl>, diff2_acf10 <dbl>, season_acf1 <dbl>,
+    ## #   pacf5 <dbl>, diff1_pacf5 <dbl>, diff2_pacf5 <dbl>, season_pacf <dbl>,
+    ## #   zero_run_mean <dbl>, nonzero_squared_cv <dbl>, zero_start_prop <dbl>,
+    ## #   zero_end_prop <dbl>, lambda_guerrero <dbl>, kpss_stat <dbl>,
+    ## #   kpss_pvalue <dbl>, pp_stat <dbl>, pp_pvalue <dbl>, ndiffs <int>, …
+
+``` r
+pcs |>
+  ggplot(aes(x = .fittedPC1,
+             y = .fittedPC2,
+             col = Purpose)) +
+  geom_point() +
+  theme(aspect.ratio = 1)
+```
+
+![](Chapter4_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+
+Each point on Figure 4.4 represents one series and its location on the
+plot is based on all 48 features. - `.fittedPC1` is the linear
+combination of the features which explains the most variation in the
+data. - `.fittedPC2` is the linear combination which explains the next
+most variation in the data - `.fittedPC2` is uncorrelated with
+`.fittedPC1`
+
+Figure 4.4 reveals a few things about the tourism data. First, the
+holiday series behave quite differently from the rest of the series.
+Almost all of the holiday series appear in the top half of the plot,
+while almost all of the remaining series appear in the bottom half of
+the plot. Clearly, the second principal component is distinguishing
+between holidays and other types of travel.
+
+The plot also allows us to identify anomalous time series — series which
+have unusual feature combinations. These appear as points that are
+separate from the majority of series in Figure 4.4. There are four that
+stand out, and we can identify which series they correspond to as
+follows.
+
+``` r
+outliers <- pcs |>
+  filter(.fittedPC1 > 10) |>
+  select(Region, State, Purpose, .fittedPC1, .fittedPC2)
+outliers
+```
+
+    ## # A tibble: 4 × 5
+    ##   Region                 State             Purpose  .fittedPC1 .fittedPC2
+    ##   <chr>                  <chr>             <chr>         <dbl>      <dbl>
+    ## 1 Australia's North West Western Australia Business       13.4    -11.3  
+    ## 2 Australia's South West Western Australia Holiday        10.9      0.880
+    ## 3 Melbourne              Victoria          Holiday        12.3    -10.4  
+    ## 4 South Coast            New South Wales   Holiday        11.9      9.42
+
+``` r
+outliers |>
+  left_join(tourism, 
+            by = c("State", "Region", "Purpose"),
+            multiple = "all") |>
+  mutate(Series = glue("{State}", "{Region}", "{Purpose}",
+                       .sep = "\n\n")) |>
+  ggplot(aes(x = Quarter, y = Trips)) +
+  geom_line() +
+  facet_grid(Series ~ ., scales = "free") +
+  labs(title = "Outlying time series in PC space")
+```
+
+![](Chapter4_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+
+- Holiday visits to the south coast of NSW is highly seasonal but has
+  almost no trend, whereas most holiday destinations in Australia show
+  some trend over time.
+- Melbourne is an unusual holiday destination because it has almost no
+  seasonality, whereas most holiday destinations in Australia have
+  highly seasonal tourism.
+- The north western corner of Western Australia is unusual because it
+  shows an increase in business tourism in the last few years of data,
+  but little or no seasonality.
+- The south western corner of Western Australia is unusual because it
+  shows both an increase in holiday tourism in the last few years of
+  data and a high level of seasonality.
