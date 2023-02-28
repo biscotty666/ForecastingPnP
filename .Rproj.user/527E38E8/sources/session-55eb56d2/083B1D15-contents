@@ -330,7 +330,7 @@ where $k=(m-1)/2$ and the weights are given by $[a_{-k},\dots,a_k]$ and the **we
 
 ## Additive decomposition
 
-1. Compute the trend-cycle component $\hat{T}_t$ using a $2\timesm$-MA if $m$ is even and $m$-MA if $m$ is odd.
+1. Compute the trend-cycle component $\hat{T}_t$ using a $2\times m$-MA if $m$ is even and $m$-MA if $m$ is odd.
 
 2. Calculate the De-trended Series: $y_t-T_t$
 

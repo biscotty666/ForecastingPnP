@@ -527,7 +527,7 @@ the **weights must sum to one** and that they are symmetric.
 
 ## Additive decomposition
 
-1.  Compute the trend-cycle component $\hat{T}_t$ using a $2\timesm$-MA
+1.  Compute the trend-cycle component $\hat{T}_t$ using a $2\times m$-MA
     if $m$ is even and $m$-MA if $m$ is odd.
 
 2.  Calculate the De-trended Series: $y_t-T_t$
