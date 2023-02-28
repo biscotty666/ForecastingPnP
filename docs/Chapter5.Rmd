@@ -1,0 +1,123 @@
+---
+title: "Chapter 5 The forecaster's toolbox"
+output:
+  github_document:
+    toc: true
+  html_document:
+    toc: true
+    df_print: paged
+---
+
+The feasts package includes functions for computing FEatures And Statistics from Time Series.
+
+```{r}
+library(fpp3)
+library(feasts)
+```
+
+# 5.1 A tidy forecasting workflow
+
+To illustrate the process, we will fit linear trend models to national GDP data stored in `global_economy`.
+
+## Data preparation (tidy)
+
+The first step in forecasting is to prepare data in the correct format. This process may involve loading in data, identifying missing values, filtering the time series, and other pre-processing tasks. The functionality provided by `tsibble` and other packages in the `tidyverse` substantially simplifies this step.
+
+If we want to model GDP per capita over time we must first compute the variable
+
+```{r}
+gdppc <- global_economy |>
+  mutate(GDP_per_capita = GDP / Population)
+gdppc
+```
+
+## Visualize the data
+
+Let's look at the data for one country
+
+```{r}
+gdppc |>
+  filter(Country == "Sweden") |>
+  autoplot(GDP_per_capita) +
+  labs(y = "$US", title = "GDP per capita for Sweden")
+```
+
+## Specify a model
+
+There are many different time series models that can be used for forecasting, and much of this book is dedicated to describing various models. Specifying an appropriate model for the data is essential for producing appropriate forecasts.
+
+Models in fable are specified using model functions, which each use a formula (y ~ x) interface. The response variable(s) are specified on the left of the formula, and the structure of the model is written on the right.
+
+For example, a linear trend model (to be discussed in Chapter 7) for GDP per capita can be specified with
+
+```{r}
+TSLM(GDP_per_capita ~ trend())
+```
+
+In this case the model function is `TSLM()` (time series linear model), the response variable is `GDP_per_capita` and it is being modelled using `trend()` (a “special” function specifying a linear trend when it is used within `TSLM()`). We will be taking a closer look at how each model can be specified in their respective sections.
+
+The special functions used to define the model’s structure vary between models (as each model can support different structures). The “Specials” section of the documentation for each model function lists these special functions and how they can be used.
+
+The left side of the formula also supports the transformations discussed in Section 3.1, which can be useful in simplifying the time series patterns or constraining the forecasts to be between specific values (see Section 13.3).
+
+## Train the model (estimate)
+
+Once an appropriate model is specified, we next train the model on some data. One or more model specifications can be estimated using the model() function.
+
+```{r}
+fit <- gdppc |>
+  model(trend_model = TSLM(GDP_per_capita ~ trend()))
+fit
+```
+
+This fits a linear trend model to the GDP per capita data for each combination of key variables in the `tsibble`. In this example, it will fit a model to each of the 263 countries in the dataset. The resulting object is a model table or a “**mable**”.
+
+## Evaluate model performance
+
+Once a model has been fitted, it is important to check how well it has performed on the data. There are several diagnostic tools available to check model behaviour, and also accuracy measures that allow one model to be compared against another. Sections 5.8 and 5.9 go into further details.
+
+## Produce forecasts
+
+With an appropriate model specified, estimated and checked, it is time to produce the forecasts using forecast(). The easiest way to use this function is by specifying the number of future observations to forecast. For example, forecasts for the next 10 observations can be generated using h = 10. We can also use natural language; e.g., h = "2 years" can be used to predict two years into the future.
+
+In other situations, it may be more convenient to provide a dataset of future time periods to forecast. This is commonly required when your model uses additional information from the data, such as exogenous regressors. Additional data required by the model can be included in the dataset of observations to forecast.
+
+```{r}
+fit |> forecast(h = "3 years")
+```
+
+This is a forecast table, or “**fable**”. Each row corresponds to one forecast period for each country. The `GDP_per_capita` column contains the **forecast distribution**, while the `.mean` column contains the **point forecast**. The point forecast is the mean (or average) of the forecast distribution.
+
+The forecasts can be plotted along with the historical data using autoplot() as follows.
+
+```{r}
+fit |>
+  forecast(h = "3 years") |>
+  filter(Country == "Sweden") |>
+  autoplot(gdppc) +
+  labs(y = "$US", title = "GDP per capita for Sweden")
+```
+
+# 5.2 Some simple forecasting methods
+
+# 5.3 Fitted values and residuals
+
+# 5.4 Residual diagnostics
+
+# 5.5 Distributional forecasts and predictions
+
+# 5.6 Forecasting using transformations
+
+# 5.7 Forecasting with decomosition
+
+# 5.8 Evaluating point forecast accuracy
+
+# 5.9 Evaluating distributional forecast accuracy
+
+# 5.10 Time series cross-validation
+
+
+
+
+
+
