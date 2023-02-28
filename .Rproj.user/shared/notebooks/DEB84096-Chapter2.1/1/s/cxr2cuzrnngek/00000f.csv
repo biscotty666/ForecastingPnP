@@ -1,6 +1,0 @@
-"0","library(tsibble)"
-"0","y <- tsibble("
-"0","  Year = 2015:2019,"
-"0","  Observation = c(123, 39, 78, 52, 110),"
-"0","  index = Year"
-"0",")"

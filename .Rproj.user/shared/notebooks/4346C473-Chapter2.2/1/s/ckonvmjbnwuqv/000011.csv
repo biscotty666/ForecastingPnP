@@ -1,6 +1,0 @@
-"0","vic_elec |>"
-"0","  filter(year(Time) == 2014) |>"
-"0","  ggplot(aes(x = Temperature, y = Demand)) +"
-"0","  geom_point() +"
-"0","  labs(x = ""Temperature (degrees Celsius)"","
-"0","       y = ""Electricity demand"")"

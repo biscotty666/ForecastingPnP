@@ -1,3 +1,0 @@
-"0","visitors |>"
-"0","  pivot_wider(values_from=Trips, names_from=State) |>"
-"0","  GGally::ggpairs(columns = 2:9)"

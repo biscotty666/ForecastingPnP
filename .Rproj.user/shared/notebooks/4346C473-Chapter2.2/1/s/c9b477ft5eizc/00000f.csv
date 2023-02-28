@@ -1,3 +1,0 @@
-"0","autoplot(holidays, Trips) +"
-"0","  labs(y = ""Overnight trips"","
-"0","       title = ""Australian domestic holidays"")"
