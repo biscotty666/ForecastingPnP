@@ -1,0 +1,7 @@
+"0","us_retail_employment |>"
+"0","  model("
+"0","    STL(Employed ~ trend(window = 7) +"
+"0","          season(window = ""periodic""),"
+"0","        robust = TRUE)) |>"
+"0","  components() |>"
+"0","  autoplot()"

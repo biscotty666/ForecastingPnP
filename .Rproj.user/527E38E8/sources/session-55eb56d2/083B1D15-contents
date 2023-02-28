@@ -438,7 +438,28 @@ autoplot(seats_dump) +
 
 This gives similar results to the X-11 method.
 
+# 3.6 STL decomposition
 
+- Handles any type of seasonality, not just monthly and quarterly
+- The seasonal component can vary over time with a rate of change controlled by the user
+- The smoothness of the trend cycle can be controlled by the user
+- It can be robust to outliers, although they will affect the remainder
+- Does not handle calendar variation automatically
+- Only provides facilities for additive decompositions
 
+A multiplicative decomposition can be obtained by first taking logs of the data, then back-transforming the components. Decompositions that are between additive and multiplicative can be obtained using a Box-Cox transformation of the data with $0<\lambda<1$. A value of $\lambda=0$ gives a multiplicative decomposition while $\lambda=1$ gives an additive decomposition.
 
+```{r}
+us_retail_employment |>
+  model(
+    STL(Employed ~ trend(window = 7) +
+          season(window = "periodic"),
+        robust = TRUE)) |>
+  components() |>
+  autoplot()
+```
+
+The two main parameters to be chosen when using STL are the trend-cycle window `trend(window = ?)` and the seasonal window `season(window = ?)`. These control how rapidly the trend-cycle and seasonal components can change. Smaller values allow for more rapid changes. Both trend and seasonal windows should be odd numbers; trend window is the number of consecutive observations to be used when estimating the trend-cycle; season window is the number of consecutive years to be used in estimating each value in the seasonal component. Setting the seasonal window to be infinite is equivalent to forcing the seasonal component to be periodic season(window='periodic') (i.e., identical across years).
+
+By default, `STL()` provides a convenient automated STL decomposition using a seasonal window of `season(window=13)`, and the trend window chosen automatically from the seasonal period. The default setting for monthly data is `trend(window=21)`. This usually gives a good balance between over-fitting the seasonality and allowing it to slowly change over time. But, as with any automated procedure, the default settings will need adjusting for some time series. In this case the default trend window setting produces a trend-cycle component that is too rigid. As a result, signal from the 2008 global financial crisis has leaked into the remainder component, as can be seen in the bottom panel of Figure 3.7. Selecting a shorter trend window as in Figure 3.18 improves this
 
