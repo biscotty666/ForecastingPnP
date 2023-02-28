@@ -1,0 +1,11 @@
+"0","library(seasonal)
+"
+"2","
+Attaching package: ‘seasonal’
+
+"
+"2","The following object is masked from ‘package:tibble’:
+
+    view
+
+"

@@ -1,0 +1,5 @@
+"0","x11_dcmp <- us_retail_employment |>"
+"0","  model(x11 = X_13ARIMA_SEATS(Employed ~ x11())) |>"
+"0","  components()"
+"0","autoplot(x11_dcmp) +"
+"0","  labs(title = ""Decomposition of total US retail employment using X-11"")"

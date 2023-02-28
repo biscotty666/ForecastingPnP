@@ -1,0 +1,5 @@
+"0","seats_dump <- us_retail_employment |>"
+"0","  model(seats = X_13ARIMA_SEATS(Employed ~ seats())) |>"
+"0","  components()"
+"0","autoplot(seats_dump) +"
+"0","  labs(title = ""Decomposition of total US retail employment using SEATS"")"

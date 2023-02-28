@@ -43,6 +43,11 @@ Chapter 3 Time series decomposition
   - <a href="#comments-on-classical-decomposition"
     id="toc-comments-on-classical-decomposition">Comments on classical
     decomposition</a>
+- <a href="#35-methods-used-by-official-statistics-agencies"
+  id="toc-35-methods-used-by-official-statistics-agencies">3.5 Methods
+  used by official statistics agencies</a>
+  - <a href="#x-11-method" id="toc-x-11-method">X-11 method</a>
+  - <a href="#seats-method" id="toc-seats-method">SEATS method</a>
 
 ``` r
 library(fpp3)
@@ -560,9 +565,7 @@ Similar to additive.
 
 3.  Estimate Seasonal Components: $\hat{S}_t$
 
-- Remainder: $R_t=\frac{y_t}{T_t \times S_t}$
-
-4.  $\hat{R}=y_t/(\hat{T}_t\hat{S}_t)$
+4.  Remainder $\hat{R}_t=y_t/(\hat{T}_t\hat{S}_t)$
 
 ``` r
 us_retail_employment |>
@@ -608,3 +611,89 @@ problems with classical decomposition are summarized below.
   passenger traffic may be affected by an industrial dispute, making the
   traffic during the dispute different from usual. The classical method
   is not robust to these kinds of unusual values.
+
+# 3.5 Methods used by official statistics agencies
+
+Most use variants of the X-11 method, the SEATS method or a combination
+of the two. They are specifically designed for **quarterly and monthly**
+data. They will not handle other types of seasonality such as weekly,
+daily or hourly. The latest implementation is **X-13ARIMA-SEATS**
+availbel in the `seasonal` package.
+
+``` r
+library(seasonal)
+```
+
+    ## 
+    ## Attaching package: 'seasonal'
+
+    ## The following object is masked from 'package:tibble':
+    ## 
+    ##     view
+
+## X-11 method
+
+``` r
+x11_dcmp <- us_retail_employment |>
+  model(x11 = X_13ARIMA_SEATS(Employed ~ x11())) |>
+  components()
+autoplot(x11_dcmp) +
+  labs(title = "Decomposition of total US retail employment using X-11")
+```
+
+![](Chapter3_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->
+
+Compare this decomposition with the STL decomposition and the classical
+decomposition shown above. The default approach for X_13ARIMA_SEATS
+shown here is a multiplicative decomposition, whereas the STL and
+classical decompositions shown earlier were additive; but it doesn’t
+make much difference in this case. The X-11 trend-cycle has captured the
+sudden fall in the data due to the 2007–2008 global financial crisis
+better than either of the other two methods (where the effect of the
+crisis has leaked into the remainder component). Also, the unusual
+observation in 1996 is now more clearly seen in the X-11 remainder
+component.
+
+``` r
+x11_dcmp |>
+  ggplot(aes(x = Month)) +
+  geom_line(aes(y = Employed, colour = "Data")) +
+  geom_line(aes(y = season_adjust,
+                colour = "Seasonally Adjusted")) +
+  geom_line(aes(y = trend, colour = "Trend")) +
+  labs(y = "Persons (thousands)",
+       title = "Total employment in US retail") +
+  scale_colour_manual(
+    values = c("gray", "#0072B2", "#D55E00"),
+    breaks = c("Data", "Seasonally Adjusted", "Trend")
+  )
+```
+
+![](Chapter3_files/figure-gfm/unnamed-chunk-22-1.png)<!-- -->
+
+A seasonal sub-series plot of the seasonal component can help visualize
+the variation over time.
+
+``` r
+x11_dcmp |>
+  gg_subseries(seasonal)
+```
+
+![](Chapter3_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
+
+## SEATS method
+
+“Seasonal Extraction in ARIMA Time Series” is a method developed by the
+Bank of Spain and is now used in government agencies world-wide.
+
+``` r
+seats_dump <- us_retail_employment |>
+  model(seats = X_13ARIMA_SEATS(Employed ~ seats())) |>
+  components()
+autoplot(seats_dump) +
+  labs(title = "Decomposition of total US retail employment using SEATS")
+```
+
+![](Chapter3_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
+
+This gives similar results to the X-11 method.
