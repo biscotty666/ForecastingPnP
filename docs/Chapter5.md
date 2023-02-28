@@ -47,6 +47,9 @@ Chapter 5 The forecaster’s toolbox
   - <a href="#residuals" id="toc-residuals">Residuals</a>
 - <a href="#54-residual-diagnostics" id="toc-54-residual-diagnostics">5.4
   Residual diagnostics</a>
+  - <a href="#example-forecasting-google-daily-closing-stock-prices"
+    id="toc-example-forecasting-google-daily-closing-stock-prices">Example:
+    Forecasting Google daily closing stock prices</a>
 - <a href="#55-distributional-forecasts-and-predictions"
   id="toc-55-distributional-forecasts-and-predictions">5.5 Distributional
   forecasts and predictions</a>
@@ -324,9 +327,10 @@ Here, the forecasts of all future values are equal to the average (or
 “mean”) of the historical data. If we let the historical data be denoted
 by $y_1,\dots,y_T$, then we can write the forecasts as
 
-$$\hat{y}_{T+h|T}=\bar{y}=(y_1+\dots+y_T)/T.$$ The notation
-$\hat{y}_{T+h|T}$ is a short-hand for the estimate of $y_{T+h}$ based on
-the data $y_1,\dots,y_T$
+$$\hat{y}_{T+h|T}=\bar{y}=(y_1+\dots+y_T)/T.$$
+
+The notation $\hat{y}_{T+h|T}$ is a short-hand for the estimate of
+$y_{T+h}$ based on the data $y_1,\dots,y_T$
 
 ``` r
 bricks |> model(MEAN(Bricks))
@@ -645,6 +649,139 @@ probably be improved**. We will look at some tools for exploring
 patterns in residuals in the next section.
 
 # 5.4 Residual diagnostics
+
+A good forecasting method will yield innovation residuals with the
+following **essential properties**:
+
+1.  **The innovation residuals are uncorrelated**. If there are
+    correlations between innovation residuals, then there is information
+    left in the residuals which should be used in computing forecasts.
+2.  **The innovation residuals have zero mean**. If they have a mean
+    other than zero, then the forecasts are biased.
+
+Any forecasting method that does not satisfy these properties can be
+improved. However, that does not mean that forecasting methods that
+satisfy these properties cannot be improved. It is possible to have
+several different forecasting methods for the same data set, all of
+which satisfy these properties. **Checking these properties is important
+in order to see whether a method is using all of the available
+information, but it is not a good way to select a forecasting method**.
+
+If either of these properties is not satisfied, then the forecasting
+method can be modified to give better forecasts. Adjusting for bias is
+easy: if the residuals have mean $m$, then simply subtract $m$ from all
+forecasts and the bias problem is solved. Fixing the correlation problem
+is harder, and we will not address it until Chapter 10.
+
+In addition to these essential properties, it is useful (but not
+necessary) for the residuals to also have the following two properties.
+
+1.  The innovation residuals have constant variance. This is known as
+    “homoscedasticity”.
+2.  The innovation residuals are normally distributed.
+
+These two properties make the calculation of prediction intervals easier
+(see Section 5.5 for an example). However, a forecasting method that
+does not satisfy these properties cannot necessarily be improved.
+Sometimes applying a Box-Cox transformation may assist with these
+properties, but otherwise there is usually little that you can do to
+ensure that your innovation residuals have constant variance and a
+normal distribution. Instead, an alternative approach to obtaining
+prediction intervals is necessary. We will show how to deal with
+non-normal innovation residuals in Section 5.5.
+
+## Example: Forecasting Google daily closing stock prices
+
+We will continue with the Google daily closing stock price example from
+Section 5.2. **For stock market prices and indexes, the best forecasting
+method is often the naïve method**. That is, each forecast is simply
+equal to the last observed value, or $\hat{y}_t=y_{t−1}$. Hence, the
+residuals are simply equal to the difference between consecutive
+observations:
+
+$$e_{t} = y_{t} - \hat{y}_{t} = y_{t} - y_{t-1}.$$
+
+The following graph shows the Google daily closing stock price for
+trading days during 2015. The large jump corresponds to 17 July 2015
+when the price jumped 16% due to unexpectedly strong second quarter
+results. (The `google_2015` object was created in Section 5.2.)
+
+``` r
+autoplot(google_2015, Close) +
+  labs(y = "$US", title = "Google daily closing stock prices in 2015")
+```
+
+![](Chapter5_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
+
+These are the residuals obtained from forecasting this series using the
+naïve method. The large positive residual is a result of the unexpected
+price jump in July.
+
+``` r
+aug <- google_2015 |>
+  model(NAIVE(Close)) |>
+  augment()
+autoplot(aug, .innov) +
+  labs(y = "$US",
+       title = "Residuals from the naive method")
+```
+
+    ## Warning: Removed 1 row containing missing values (`geom_line()`).
+
+![](Chapter5_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->
+
+``` r
+aug |>
+  ggplot(aes(x = .innov)) +
+  geom_histogram() +
+  labs(title = "Histogram of residuals")
+```
+
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+    ## Warning: Removed 1 rows containing non-finite values (`stat_bin()`).
+
+![](Chapter5_files/figure-gfm/unnamed-chunk-22-1.png)<!-- -->
+
+``` r
+aug |>
+  ACF(.innov) |>
+  autoplot() +
+  labs(title = "Residuals from the naive method")
+```
+
+![](Chapter5_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
+
+These graphs show that the naïve method produces forecasts that appear
+to account for all available information. The mean of the residuals is
+close to zero and there is no significant correlation in the residuals
+series. The time plot of the residuals shows that the variation of the
+residuals stays much the same across the historical data, apart from the
+one outlier, and therefore the residual variance can be treated as
+constant. This can also be seen on the histogram of the residuals. The
+histogram suggests that the residuals may not be normal — the right tail
+seems a little too long, even when we ignore the outlier. Consequently,
+forecasts from this method will probably be quite good, but prediction
+intervals that are computed assuming a normal distribution may be
+inaccurate.
+
+A **convenient shortcut** for producing these residual diagnostic graphs
+is the `gg_tsresiduals()` function, which will produce a time plot, ACF
+plot and histogram of the residuals.
+
+``` r
+google_2015 |>
+  model(NAIVE(Close)) |>
+  gg_tsresiduals()
+```
+
+    ## Warning: Removed 1 row containing missing values (`geom_line()`).
+
+    ## Warning: Removed 1 rows containing missing values (`geom_point()`).
+
+    ## Warning: Removed 1 rows containing non-finite values (`stat_bin()`).
+
+![](Chapter5_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
 
 # 5.5 Distributional forecasts and predictions
 
