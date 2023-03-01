@@ -1,4 +1,4 @@
-Chapter 5 The forecaster’s toolbox
+Chapter 5 The forecaster’s toolbox Part 1
 ================
 
 - <a href="#51-a-tidy-forecasting-workflow"
@@ -67,21 +67,9 @@ Chapter 5 The forecaster’s toolbox
     id="toc-one-step-prediction-intervals">One-step prediction intervals</a>
   - <a href="#benchmark-methods" id="toc-benchmark-methods">Benchmark
     methods</a>
-- <a href="#56-forecasting-using-transformations"
-  id="toc-56-forecasting-using-transformations">5.6 Forecasting using
-  transformations</a>
-- <a href="#57-forecasting-with-decomosition"
-  id="toc-57-forecasting-with-decomosition">5.7 Forecasting with
-  decomosition</a>
-- <a href="#58-evaluating-point-forecast-accuracy"
-  id="toc-58-evaluating-point-forecast-accuracy">5.8 Evaluating point
-  forecast accuracy</a>
-- <a href="#59-evaluating-distributional-forecast-accuracy"
-  id="toc-59-evaluating-distributional-forecast-accuracy">5.9 Evaluating
-  distributional forecast accuracy</a>
-- <a href="#510-time-series-cross-validation"
-  id="toc-510-time-series-cross-validation">5.10 Time series
-  cross-validation</a>
+  - <a href="#prediction-intervals-from-bootstrapped-residuals"
+    id="toc-prediction-intervals-from-bootstrapped-residuals">Prediction
+    intervals from bootstrapped residuals</a>
 
 The feasts package includes functions for computing FEatures And
 Statistics from Time Series.
@@ -161,7 +149,7 @@ gdppc |>
   labs(y = "$US", title = "GDP per capita for Sweden")
 ```
 
-![](Chapter5_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+![](Chapter5.1_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
 ## Specify a model
 
@@ -299,7 +287,7 @@ fit |>
   labs(y = "$US", title = "GDP per capita for Sweden")
 ```
 
-![](Chapter5_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+![](Chapter5.1_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
 # 5.2 Some simple forecasting methods
 
@@ -460,7 +448,7 @@ beer_fc |>
 
     ## Plot variable not specified, automatically selected `.vars = Beer`
 
-![](Chapter5_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+![](Chapter5.1_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
 
 In this case, only the seasonal naïve forecasts are close to the
 observed values from 2007 onwards
@@ -560,7 +548,7 @@ google_fc |>
   guides(colour = guide_legend(title = "Forecast"))
 ```
 
-![](Chapter5_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
+![](Chapter5.1_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
 
 Sometimes one of these simple methods will be the best forecasting
 method available; but in many cases, these methods will serve as
@@ -725,7 +713,7 @@ autoplot(google_2015, Close) +
   labs(y = "$US", title = "Google daily closing stock prices in 2015")
 ```
 
-![](Chapter5_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
+![](Chapter5.1_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
 
 These are the residuals obtained from forecasting this series using the
 naïve method. The large positive residual is a result of the unexpected
@@ -742,7 +730,7 @@ autoplot(aug, .innov) +
 
     ## Warning: Removed 1 row containing missing values (`geom_line()`).
 
-![](Chapter5_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->
+![](Chapter5.1_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->
 
 ``` r
 aug |>
@@ -755,7 +743,7 @@ aug |>
 
     ## Warning: Removed 1 rows containing non-finite values (`stat_bin()`).
 
-![](Chapter5_files/figure-gfm/unnamed-chunk-22-1.png)<!-- -->
+![](Chapter5.1_files/figure-gfm/unnamed-chunk-22-1.png)<!-- -->
 
 ``` r
 aug |>
@@ -764,7 +752,7 @@ aug |>
   labs(title = "Residuals from the naive method")
 ```
 
-![](Chapter5_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
+![](Chapter5.1_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
 
 These graphs show that the naïve method produces forecasts that appear
 to account for all available information. The mean of the residuals is
@@ -795,7 +783,7 @@ google_2015 |>
 
     ## Warning: Removed 1 rows containing non-finite values (`stat_bin()`).
 
-![](Chapter5_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
+![](Chapter5.1_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
 
 ## Portmanteau tests for autocorrelation
 
@@ -1016,12 +1004,193 @@ same approximate value $\hat\sigma$.
 | Seasonal naive                                          | $\hat\sigma_h = \hat\sigma\sqrt{k+1}$          |
 | Drift                                                   | $\hat\sigma_h = \hat\sigma\sqrt{h(1+h/(T-1))}$ |
 
-# 5.6 Forecasting using transformations
+Prediction intervals can easily be computed for you when using the
+1fable1 package. For example, here is the output when using the naïve
+method for the Google stock price.
 
-# 5.7 Forecasting with decomosition
+``` r
+google_2015 |>
+  model(NAIVE(Close)) |>
+  forecast(h = 10) |>
+  hilo()
+```
 
-# 5.8 Evaluating point forecast accuracy
+    ## # A tsibble: 10 x 7 [1]
+    ## # Key:       Symbol, .model [1]
+    ##    Symbol .model         day        Close .mean                  `80%`
+    ##    <chr>  <chr>        <dbl>       <dist> <dbl>                 <hilo>
+    ##  1 GOOG   NAIVE(Close)   253  N(759, 125)  759. [744.5400, 773.2200]80
+    ##  2 GOOG   NAIVE(Close)   254  N(759, 250)  759. [738.6001, 779.1599]80
+    ##  3 GOOG   NAIVE(Close)   255  N(759, 376)  759. [734.0423, 783.7177]80
+    ##  4 GOOG   NAIVE(Close)   256  N(759, 501)  759. [730.1999, 787.5601]80
+    ##  5 GOOG   NAIVE(Close)   257  N(759, 626)  759. [726.8147, 790.9453]80
+    ##  6 GOOG   NAIVE(Close)   258  N(759, 751)  759. [723.7543, 794.0058]80
+    ##  7 GOOG   NAIVE(Close)   259  N(759, 876)  759. [720.9399, 796.8202]80
+    ##  8 GOOG   NAIVE(Close)   260 N(759, 1002)  759. [718.3203, 799.4397]80
+    ##  9 GOOG   NAIVE(Close)   261 N(759, 1127)  759. [715.8599, 801.9001]80
+    ## 10 GOOG   NAIVE(Close)   262 N(759, 1252)  759. [713.5329, 804.2272]80
+    ## # … with 1 more variable: `95%` <hilo>
 
-# 5.9 Evaluating distributional forecast accuracy
+The `hilo()` function converts the forecast distributions into
+intervals. By default, 80% and 95% prediction intervals are returned,
+although other options are possible via the level argument.
 
-# 5.10 Time series cross-validation
+When plotted, the prediction intervals are shown as shaded regions, with
+the strength of colour indicating the probability associated with the
+interval. Again, 80% and 95% intervals are shown by default, with other
+options available via the `level` argument.
+
+``` r
+google_2015 |>
+  model(NAIVE(Close)) |>
+  forecast(h = 10) |>
+  autoplot(google_2015) +
+  labs(y ="$US",
+       title = "Google daily closing stock price")
+```
+
+![](Chapter5.1_files/figure-gfm/unnamed-chunk-30-1.png)<!-- -->
+
+## Prediction intervals from bootstrapped residuals
+
+When a normal distribution for the residuals is an unreasonable
+assumption, one alternative is to use bootstrapping, which only assumes
+that the residuals are uncorrelated with constant variance.
+
+A one-step forecast error is defined as $e_t=y_t-\hat{y}_{t|t-1}$. We
+can re-write this as
+
+$$y_t = \hat{y}_{t|t-1} + e_t.$$
+
+So we can simulate the next observation of a time series using
+
+$$y_{T+1} = \hat{y}_{T+1|T} + e_{T+1}$$
+
+Where $\hat{y}_{t|t-1}$ is the one-step forecast and $e_{T+1}$ is an
+unknown future error. Assuming future errors will be similar to past
+errors, we can replace $e_{T+1}$ by sampling from the collection of
+errors we have seen in the past (i.e., the residuals). Adding the new
+simulated observation to our data set, we can repeat the process to
+obtain
+
+$$y_{T+2} = \hat{y}_{T+2|T+1} + e_{T+2}$$
+
+Doing this repeatedly, we obtain many possible futures. To see some of
+them, we can use the `generate()` function.
+
+``` r
+fit <- google_2015 |>
+  model(NAIVE(Close))
+sim <- fit |> generate(h = 30,
+                       times = 5,
+                       bootstrap = TRUE)
+sim
+```
+
+    ## # A tsibble: 150 x 5 [1]
+    ## # Key:       Symbol, .model, .rep [5]
+    ##    Symbol .model         day .rep   .sim
+    ##    <chr>  <chr>        <dbl> <chr> <dbl>
+    ##  1 GOOG   NAIVE(Close)   253 1      765.
+    ##  2 GOOG   NAIVE(Close)   254 1      757.
+    ##  3 GOOG   NAIVE(Close)   255 1      760.
+    ##  4 GOOG   NAIVE(Close)   256 1      756.
+    ##  5 GOOG   NAIVE(Close)   257 1      750.
+    ##  6 GOOG   NAIVE(Close)   258 1      747.
+    ##  7 GOOG   NAIVE(Close)   259 1      758.
+    ##  8 GOOG   NAIVE(Close)   260 1      768.
+    ##  9 GOOG   NAIVE(Close)   261 1      776.
+    ## 10 GOOG   NAIVE(Close)   262 1      774.
+    ## # … with 140 more rows
+
+Here we have generated five possible sample paths for the next 30
+trading days. The .rep variable provides a new key for the tsibble. The
+plot below shows the five sample paths along with the historical data.
+
+``` r
+google_2015 |>
+  ggplot(aes(x = day)) +
+  geom_line(aes(y = Close)) +
+  geom_line(aes(y = .sim, 
+                colour = as.factor(.rep)),
+            data = sim) +
+  labs(title = "Google daily closing stock price",
+       y = "$US") +
+  guides(colour = "none")
+```
+
+![](Chapter5.1_files/figure-gfm/unnamed-chunk-32-1.png)<!-- -->
+
+Then we can compute prediction intervals by calculating percentiles of
+the future sample paths for each forecast horizon. The result is called
+a bootstrapped prediction interval. The name “bootstrap” is a reference
+to pulling ourselves up by our bootstraps, because the process allows us
+to measure future uncertainty by only using the historical data.
+
+This is all built into the `forecast()` function so you do not need to
+call `generate()` directly.
+
+``` r
+fc <- fit |> forecast(h = 30, bootstrap = TRUE)
+fc
+```
+
+    ## # A fable: 30 x 5 [1]
+    ## # Key:     Symbol, .model [1]
+    ##    Symbol .model         day        Close .mean
+    ##    <chr>  <chr>        <dbl>       <dist> <dbl>
+    ##  1 GOOG   NAIVE(Close)   253 sample[5000]  759.
+    ##  2 GOOG   NAIVE(Close)   254 sample[5000]  759.
+    ##  3 GOOG   NAIVE(Close)   255 sample[5000]  759.
+    ##  4 GOOG   NAIVE(Close)   256 sample[5000]  759.
+    ##  5 GOOG   NAIVE(Close)   257 sample[5000]  759.
+    ##  6 GOOG   NAIVE(Close)   258 sample[5000]  759.
+    ##  7 GOOG   NAIVE(Close)   259 sample[5000]  759.
+    ##  8 GOOG   NAIVE(Close)   260 sample[5000]  758.
+    ##  9 GOOG   NAIVE(Close)   261 sample[5000]  759.
+    ## 10 GOOG   NAIVE(Close)   262 sample[5000]  759.
+    ## # … with 20 more rows
+
+Notice that the forecast distribution is now represented as a simulation
+with 5000 sample paths. Because there is no normality assumption, the
+prediction intervals are not symmetric. The `.mean` column is the mean
+of the bootstrap samples, so it may be slightly different from the
+results obtained without a bootstrap.
+
+``` r
+autoplot(fc, google_2015) +
+  labs(title = "Google daily closing stock price",
+       y = "$US")
+```
+
+![](Chapter5.1_files/figure-gfm/unnamed-chunk-34-1.png)<!-- -->
+
+The number of samples can be controlled using the `times` argument for
+`forecast()`. For example, intervals based on 1000 bootstrap samples can
+be sampled with:
+
+``` r
+google_2015 |>
+  model(NAIVE(Close)) |>
+  forecast(h = 10, bootstrap = TRUE, times = 1000) |>
+  hilo()
+```
+
+    ## # A tsibble: 10 x 7 [1]
+    ## # Key:       Symbol, .model [1]
+    ##    Symbol .model         day        Close .mean                  `80%`
+    ##    <chr>  <chr>        <dbl>       <dist> <dbl>                 <hilo>
+    ##  1 GOOG   NAIVE(Close)   253 sample[1000]  759. [748.2250, 769.8960]80
+    ##  2 GOOG   NAIVE(Close)   254 sample[1000]  759. [742.6012, 775.6541]80
+    ##  3 GOOG   NAIVE(Close)   255 sample[1000]  759. [737.9975, 779.3517]80
+    ##  4 GOOG   NAIVE(Close)   256 sample[1000]  759. [734.9836, 781.8157]80
+    ##  5 GOOG   NAIVE(Close)   257 sample[1000]  759. [730.3147, 787.0578]80
+    ##  6 GOOG   NAIVE(Close)   258 sample[1000]  759. [727.5542, 789.9223]80
+    ##  7 GOOG   NAIVE(Close)   259 sample[1000]  759. [725.1467, 795.5457]80
+    ##  8 GOOG   NAIVE(Close)   260 sample[1000]  759. [722.2653, 797.9332]80
+    ##  9 GOOG   NAIVE(Close)   261 sample[1000]  759. [720.8862, 801.1836]80
+    ## 10 GOOG   NAIVE(Close)   262 sample[1000]  759. [718.9891, 804.2832]80
+    ## # … with 1 more variable: `95%` <hilo>
+
+In this case, they are similar (but not identical) to the prediction
+intervals based on the normal distribution.

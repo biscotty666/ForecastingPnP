@@ -1,5 +1,5 @@
 ---
-title: "Chapter 5 The forecaster's toolbox"
+title: "Chapter 5 The forecaster's toolbox Part 1"
 output:
   github_document:
     toc: true
@@ -485,16 +485,96 @@ For the four benchmark methods, it is possible to mathematically derive the fore
 |Seasonal naive|$\hat\sigma_h = \hat\sigma\sqrt{k+1}$|
 |Drift|$\hat\sigma_h = \hat\sigma\sqrt{h(1+h/(T-1))}$|
 
-# 5.6 Forecasting using transformations
+Prediction intervals can easily be computed for you when using the 1fable1 package. For example, here is the output when using the naïve method for the Google stock price.
 
-# 5.7 Forecasting with decomosition
+```{r}
+google_2015 |>
+  model(NAIVE(Close)) |>
+  forecast(h = 10) |>
+  hilo()
+```
 
-# 5.8 Evaluating point forecast accuracy
+The `hilo()` function converts the forecast distributions into intervals. By default, 80% and 95% prediction intervals are returned, although other options are possible via the level argument.
 
-# 5.9 Evaluating distributional forecast accuracy
+When plotted, the prediction intervals are shown as shaded regions, with the strength of colour indicating the probability associated with the interval. Again, 80% and 95% intervals are shown by default, with other options available via the `level` argument.
 
-# 5.10 Time series cross-validation
+```{r}
+google_2015 |>
+  model(NAIVE(Close)) |>
+  forecast(h = 10) |>
+  autoplot(google_2015) +
+  labs(y ="$US",
+       title = "Google daily closing stock price")
+```
 
+## Prediction intervals from bootstrapped residuals
+
+When a normal distribution for the residuals is an unreasonable assumption, one alternative is to use bootstrapping, which only assumes that the residuals are uncorrelated with constant variance.
+
+A one-step forecast error is defined as $e_t=y_t-\hat{y}_{t|t-1}$. We can re-write this as
+
+$$y_t = \hat{y}_{t|t-1} + e_t.$$
+
+So we can simulate the next observation of a time series using
+
+$$y_{T+1} = \hat{y}_{T+1|T} + e_{T+1}$$
+
+Where $\hat{y}_{t|t-1}$ is the one-step forecast and $e_{T+1}$ is an unknown future error. Assuming future errors will be similar to past errors, we can replace $e_{T+1}$ by sampling from the collection of errors we have seen in the past (i.e., the residuals). Adding the new simulated observation to our data set, we can repeat the process to obtain
+
+$$y_{T+2} = \hat{y}_{T+2|T+1} + e_{T+2}$$
+
+Doing this repeatedly, we obtain many possible futures. To see some of them, we can use the `generate()` function.
+
+```{r}
+fit <- google_2015 |>
+  model(NAIVE(Close))
+sim <- fit |> generate(h = 30,
+                       times = 5,
+                       bootstrap = TRUE)
+sim
+```
+
+Here we have generated five possible sample paths for the next 30 trading days. The .rep variable provides a new key for the tsibble. The plot below shows the five sample paths along with the historical data.
+
+```{r}
+google_2015 |>
+  ggplot(aes(x = day)) +
+  geom_line(aes(y = Close)) +
+  geom_line(aes(y = .sim, 
+                colour = as.factor(.rep)),
+            data = sim) +
+  labs(title = "Google daily closing stock price",
+       y = "$US") +
+  guides(colour = "none")
+```
+
+Then we can compute prediction intervals by calculating percentiles of the future sample paths for each forecast horizon. The result is called a bootstrapped prediction interval. The name “bootstrap” is a reference to pulling ourselves up by our bootstraps, because the process allows us to measure future uncertainty by only using the historical data.
+
+This is all built into the `forecast()` function so you do not need to call `generate()` directly.
+
+```{r}
+fc <- fit |> forecast(h = 30, bootstrap = TRUE)
+fc
+```
+
+Notice that the forecast distribution is now represented as a simulation with 5000 sample paths. Because there is no normality assumption, the prediction intervals are not symmetric. The `.mean` column is the mean of the bootstrap samples, so it may be slightly different from the results obtained without a bootstrap.
+
+```{r}
+autoplot(fc, google_2015) +
+  labs(title = "Google daily closing stock price",
+       y = "$US")
+```
+
+The number of samples can be controlled using the `times` argument for `forecast()`. For example, intervals based on 1000 bootstrap samples can be sampled with:
+
+```{r}
+google_2015 |>
+  model(NAIVE(Close)) |>
+  forecast(h = 10, bootstrap = TRUE, times = 1000) |>
+  hilo()
+```
+
+In this case, they are similar (but not identical) to the prediction intervals based on the normal distribution.
 
 
 

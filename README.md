@@ -10,6 +10,6 @@ My notes
 
 [Chapter 4 Time Series Features](docs/Chapter4.md)
 
-[Chapter 5 The forecasters toolbox](docs/Chapter5.md)
+[Chapter 5 The forecasters toolbox Part 1](docs/Chapter5.1.md)
 
 [Chapter 2 Exercises](exercises/Ch2Exercises.md)
