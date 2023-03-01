@@ -12,6 +12,8 @@ My notes
 
 [Chapter 5 The forecasters toolbox Part 1](docs/Chapter5.1.md)
 
+[Chapter 5 The forecasters toolbox Part 1 html](docs/Chapter5.1.html)
+
 [Chapter 5 The forecasters toolbox Part 2](docs/Chapter5.2.md)
 
 [Chapter 2 Exercises](exercises/Ch2Exercises.md)

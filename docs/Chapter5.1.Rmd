@@ -1,11 +1,11 @@
 ---
 title: "Chapter 5 The forecaster's toolbox Part 1"
 output:
-  github_document:
-    toc: true
   html_document:
     toc: true
     df_print: paged
+  github_document:
+    toc: true
 ---
 
 The feasts package includes functions for computing FEatures And Statistics from Time Series.
