@@ -9,6 +9,12 @@ Chapter 5 The forecaster’s toolbox Part 2
     with transformations</a>
   - <a href="#bias-adjustments" id="toc-bias-adjustments">Bias
     adjustments</a>
+- <a href="#57-forecasting-with-decomposition"
+  id="toc-57-forecasting-with-decomposition">5.7 Forecasting with
+  decomposition</a>
+  - <a href="#example-employment-in-the-us-retail-sector"
+    id="toc-example-employment-in-the-us-retail-sector">Example: Employment
+    in the US retail sector</a>
 
 ``` r
 library(fpp3)
@@ -144,3 +150,109 @@ Bias-adjusted forecast means are automatically computed in the `fable`
 package. The forecast median (the point forecast prior to bias
 adjustment) can be obtained using the `median()` function on the
 distribution column.
+
+# 5.7 Forecasting with decomposition
+
+- Additive decomposition:
+
+$$y_t = \hat{S}_t + \hat{A}_t,$$
+
+where $\hat{A}_t=\hat{T}_t+\hat{R}_t$ is the seasonally adjusted
+component.
+
+- Multiplicative decomposition:
+
+$$y_t = \hat{S}_t\hat{A}_t,$$
+
+where $\hat{A}_t = \hat{T}_t\hat{R}_{t}$.
+
+To forecast a decomposed time series, we **forecast the seasonal
+component, $\hat{S}_t$, and the seasonally adjusted component
+$\hat{A}_t$, separately**. It is usually assumed that the seasonal
+component is unchanging, or changing extremely slowly, so it is forecast
+by simply taking the last year of the estimated component. In other
+words, **a seasonal naïve method is used for the seasonal component**.
+
+To forecast the seasonally adjusted component, any non-seasonal
+forecasting method may be used. For example, the drift method, or Holt’s
+method (discussed in Chapter 8), or a non-seasonal ARIMA model
+(discussed in Chapter 9), may be used.
+
+## Example: Employment in the US retail sector
+
+``` r
+us_retail_employment <- us_employment |>
+  filter(year(Month) >= 1990, Title == "Retail Trade")
+dcmp <- us_retail_employment |>
+  model(STL(Employed ~ trend(window = 7), robust = TRUE)) |>
+  components() |>
+  select(-.model)
+dcmp |>
+  model(NAIVE(season_adjust)) |>
+  forecast() |>
+  autoplot(dcmp) +
+  labs(y = "Number of people",
+       title = "US retail employment")
+```
+
+![](Chapter5.2_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+<p class="caption">
+Figure 5.18: Naïve forecasts of the seasonally adjusted data obtained
+from an STL decomposition of the total US retail employment.
+</p>
+
+Figure 5.18 shows naïve forecasts of the seasonally adjusted US retail
+employment data. These are then “reseasonalised” by adding in the
+seasonal naïve forecasts of the seasonal component.
+
+This is made easy with the **`decomposition_model()` function**, which
+allows you to compute forecasts via any additive decomposition, using
+other model functions to forecast each of the decomposition’s
+components. Seasonal components of the model will be forecast
+automatically using `SNAIVE()` if a different model isn’t specified. The
+function will also do the reseasonalising for you, ensuring that the
+resulting forecasts of the original data are obtained. These are shown
+in Figure 5.19.
+
+``` r
+fit_dcmp <- us_retail_employment |>
+  model(stlf = decomposition_model(
+    STL(Employed ~ trend(window = 7), robust = TRUE),
+    NAIVE(season_adjust)
+  ))
+fit_dcmp |>
+  forecast() |>
+  autoplot(us_retail_employment)+
+  labs(y = "Number of people",
+       title = "US retail employment")
+```
+
+![](Chapter5.2_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+
+<p class="caption">
+Figure 5.19: Forecasts of the total US retail employment data based on a
+naïve forecast of the seasonally adjusted data and a seasonal naïve
+forecast of the seasonal component, after an STL decomposition of the
+data.
+</p>
+
+The prediction intervals shown in this graph are constructed in the same
+way as the point forecasts. That is, the upper and lower limits of the
+prediction intervals on the seasonally adjusted data are
+“reseasonalised” by adding in the forecasts of the seasonal component.
+
+The ACF of the residuals, shown in Figure 5.20, displays significant
+autocorrelations. These are due to the naïve method not capturing the
+changing trend in the seasonally adjusted series.
+
+``` r
+fit_dcmp |> gg_tsresiduals()
+```
+
+    ## Warning: Removed 12 rows containing missing values (`geom_line()`).
+
+    ## Warning: Removed 12 rows containing missing values (`geom_point()`).
+
+    ## Warning: Removed 12 rows containing non-finite values (`stat_bin()`).
+
+![](Chapter5.2_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
