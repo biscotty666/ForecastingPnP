@@ -50,6 +50,9 @@ Chapter 5 The forecaster’s toolbox
   - <a href="#example-forecasting-google-daily-closing-stock-prices"
     id="toc-example-forecasting-google-daily-closing-stock-prices">Example:
     Forecasting Google daily closing stock prices</a>
+  - <a href="#portmanteau-tests-for-autocorrelation"
+    id="toc-portmanteau-tests-for-autocorrelation">Portmanteau tests for
+    autocorrelation</a>
 - <a href="#55-distributional-forecasts-and-predictions"
   id="toc-55-distributional-forecasts-and-predictions">5.5 Distributional
   forecasts and predictions</a>
@@ -782,6 +785,103 @@ google_2015 |>
     ## Warning: Removed 1 rows containing non-finite values (`stat_bin()`).
 
 ![](Chapter5_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
+
+## Portmanteau tests for autocorrelation
+
+In addition to looking at the ACF plot, we can also do a more formal
+test for autocorrelation by considering a whole set of $r_k$ values as a
+group, rather than treating each one separately.
+
+Recall that $r_k$ is the autocorrelation for lag $k$. When we look at
+the ACF plot to see whether each spike is within the required limits, we
+are implicitly carrying out multiple hypothesis tests, each one with a
+small probability of giving a false positive. When enough of these tests
+are done, it is likely that at least one will give a false positive, and
+so we may conclude that the residuals have some remaining
+autocorrelation, when in fact they do not.
+
+In order to overcome this problem, we test whether the first $l$
+autocorrelations are significantly different from what would be expected
+from a white noise process. A test for a group of autocorrelations is
+called a **portmanteau test**, from a French word describing a suitcase
+or coat rack carrying several items of clothing.
+
+One such test is the **Box-Pierce test**, based on the following
+statistic
+
+$$Q = T \sum_{k=1}^\ell r_k^2,$$
+
+where $l$ is the maximum lag being considered and $T$ is the number of
+observations. If each $r_k$ is close to zero, then $Q$ will be small. If
+some $r_k$ values are large (positive or negative), then $Q$ will be
+large. We suggest using $l=10$ for non-seasonal data and $l=2m$ for
+seasonal data, where $m$ is the period of seasonality. However, the test
+is not good when $l$ is large, so if these values are larger than $T/5$,
+then use $l=T/5$.
+
+A related (and more accurate) test is the **Ljung-Box test**, based on
+
+$$Q^* = T(T+2) \sum_{k=1}^\ell (T-k)^{-1}r_k^2.$$
+
+Again, large values of $Q^*$ suggest that the autocorrelations do not
+come from a white noise series.
+
+How large is too large? If the autocorrelations did come from a white
+noise series, then both $Q$ and $Q^*$ would have a $\chi^2$ distribution
+with $\ell$ degrees of freedom.
+
+In the following code, `lag` = $\ell$
+
+``` r
+aug |> features(.innov, box_pierce, lag = 10)
+```
+
+    ## # A tibble: 1 × 4
+    ##   Symbol .model       bp_stat bp_pvalue
+    ##   <chr>  <chr>          <dbl>     <dbl>
+    ## 1 GOOG   NAIVE(Close)    7.74     0.654
+
+``` r
+aug |> features(.innov, ljung_box, lag = 10)
+```
+
+    ## # A tibble: 1 × 4
+    ##   Symbol .model       lb_stat lb_pvalue
+    ##   <chr>  <chr>          <dbl>     <dbl>
+    ## 1 GOOG   NAIVE(Close)    7.91     0.637
+
+For both $Q$ and $Q^*$ the results are not significant (i.e., the
+$p$-values are relatively large). Thus, we can conclude that the
+residuals are not distinguishable from a white noise series.
+
+An alternative simple approach that may be appropriate for forecasting
+the Google daily closing stock price is the `drift` method. The `tidy()`
+function shows the one estimated parameter, the **drift coefficient**,
+measuring the average daily change observed in the historical data.
+
+``` r
+fit <- google_2015 |> model(RW(Close ~ drift()))
+tidy(fit)
+```
+
+    ## # A tibble: 1 × 7
+    ##   Symbol .model              term  estimate std.error statistic p.value
+    ##   <chr>  <chr>               <chr>    <dbl>     <dbl>     <dbl>   <dbl>
+    ## 1 GOOG   RW(Close ~ drift()) b        0.944     0.705      1.34   0.182
+
+Applying the Ljung-Box test, we obtain the following result.
+
+``` r
+augment(fit) |> features(.innov, ljung_box, lag = 10)
+```
+
+    ## # A tibble: 1 × 4
+    ##   Symbol .model              lb_stat lb_pvalue
+    ##   <chr>  <chr>                 <dbl>     <dbl>
+    ## 1 GOOG   RW(Close ~ drift())    7.91     0.637
+
+As with the naïve method, the residuals from the drift method are
+indistinguishable from a white noise series.
 
 # 5.5 Distributional forecasts and predictions
 
