@@ -454,3 +454,57 @@ The skill_score() function will always compute the CRPS for the appropriate benc
 
 The `skill_score()` function can be used with any accuracy measure. For example, `skill_score(MSE)` provides a way of comparing MSE values across diverse series. However, it is important that the test set is large enough to allow reliable calculation of the error measure, especially in the denominator. For that reason, **MASE or RMSSE are often preferable scale-free measures for point forecast accuracy**.
 
+# 5.10 Time series cross-validation
+
+A more sophisticated version of training/test sets is time series cross-validation. In this procedure, there are a series of test sets, each consisting of a single observation. The corresponding training set consists only of observations that occurred prior to the observation that forms the test set. Thus, no future observations can be used in constructing the forecast. Since it is not possible to obtain a reliable forecast based on a small training set, the earliest observations are not considered as test sets.
+
+The following diagram illustrates the series of training and test sets, where the blue observations form the training sets, and the orange observations form the test sets.
+
+<img src="https://otexts.com/fpp3/fpp_files/figure-html/cv1-1.svg" />
+
+The forecast accuracy is computed by averaging over the test sets. This procedure is sometimes known as “evaluation on a rolling forecasting origin” because the “origin” at which the forecast is based rolls forward in time.
+
+With time series forecasting, one-step forecasts may not be as relevant as multi-step forecasts. In this case, the cross-validation procedure based on a rolling forecasting origin can be modified to allow multi-step errors to be used. Suppose that we are interested in models that produce good $4$-step-ahead forecasts. Then the corresponding diagram is shown below.
+
+<img src="https://otexts.com/fpp3/fpp_files/figure-html/cv4-1.svg" />
+
+In the following example, we compare the accuracy obtained via time series cross-validation with the residual accuracy. The `stretch_tsibble()` function is used to create many training sets. In this example, we start with a training set of length `.init=3`, and increasing the size of successive training sets by `.step=1`.
+
+```{r}
+google_2015_tr <- google_2015 |>
+  stretch_tsibble(.init = 3, .step = 1) |>
+  relocate(Date, Symbol, .id)
+google_2015_tr
+```
+
+The .id column provides a new key indicating the various training sets. The accuracy() function can be used to evaluate the forecasts accuracy across the training sets.
+
+** TSCV accuracy
+
+```{r}
+google_2015_tr |>
+  model(RW(Close ~ drift())) |>
+  forecast(h = 1) |>
+  accuracy(google_2015)
+```
+
+```{r}
+google_2015 |>
+  model(RW(Close ~ drift())) |>
+  accuracy()
+```
+
+|Evaluation method|RMSE |MAE |MAPE|MASE|
+|-----------------|-----|----|----|----|
+|Cross-validation |11.27|7.26|1.19|1.02|
+|Training         |11.15|7.16|1.18|1.00|
+
+As expected, the accuracy measures from the residuals are smaller, as the corresponding “forecasts” are based on a model fitted to the entire data set, rather than being true forecasts.
+
+A good way to choose the best forecasting model is to find the model with the smallest RMSE computed using time series cross-validation.
+
+
+
+
+
+
