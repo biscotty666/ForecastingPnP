@@ -4,15 +4,21 @@ From Hyndman, R.J., & Athanasopoulos, G. (2021) Forecasting: principles and prac
 
 My notes
 
-[Chapter 2 Time Series Graphics](docs/Chapter2.md)
+[Chapter 2 Time Series Graphics html](docs/Chapter2.html)
 
-[Chapter 3 Time Series Decomposition](docs/Chapter3.md)
+[Chapter 2 Time Series Graphics md](docs/Chapter2.md)
+
+[Chapter 3 Time Series Decomposition html](docs/Chapter3.html)
+
+[Chapter 3 Time Series Decomposition md](docs/Chapter3.md)
+
+[Chapter 4 Time Series Features html](docs/Chapter4.html)
 
 [Chapter 4 Time Series Features](docs/Chapter4.md)
 
-[Chapter 5 The forecasters toolbox Part 1](docs/Chapter5.1.md)
-
 [Chapter 5 The forecasters toolbox Part 1 html](docs/Chapter5.1.html)
+
+[Chapter 5 The forecasters toolbox Part 1 md](docs/Chapter5.1.md)
 
 [Chapter 5 The forecasters toolbox Part 2](docs/Chapter5.2.md)
 
