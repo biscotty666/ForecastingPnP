@@ -27,6 +27,28 @@ Chapter 7 Time series regression
   - <a href="#standard-error-of-the-regression"
     id="toc-standard-error-of-the-regression">Standard error of the
     regression</a>
+- <a href="#73-evaluating-the-regression-model"
+  id="toc-73-evaluating-the-regression-model">7.3 Evaluating the
+  regression model</a>
+  - <a href="#acf-plot-of-residuals" id="toc-acf-plot-of-residuals">ACF plot
+    of residuals</a>
+  - <a href="#histogram-of-residuals"
+    id="toc-histogram-of-residuals">Histogram of residuals</a>
+    - <a href="#example" id="toc-example">Example</a>
+  - <a href="#residual-plots-against-predictors"
+    id="toc-residual-plots-against-predictors">Residual plots against
+    predictors</a>
+    - <a href="#example-1" id="toc-example-1">Example</a>
+  - <a href="#residual-plots-against-fitted-values"
+    id="toc-residual-plots-against-fitted-values">Residual plots against
+    fitted values</a>
+    - <a href="#example-2" id="toc-example-2">Example</a>
+  - <a href="#outliers-and-influential-observations"
+    id="toc-outliers-and-influential-observations">Outliers and influential
+    observations</a>
+    - <a href="#example-3" id="toc-example-3">Example</a>
+  - <a href="#spurious-regression" id="toc-spurious-regression">Spurious
+    regression</a>
 
 In this chapter we discuss regression models. The basic concept is that
 we forecast the time series of interest $y$ assuming that it has a
@@ -476,3 +498,265 @@ accuracy of the model.
 
 The standard error will be used when generating prediction intervals,
 discussed in Section 7.6.
+
+# 7.3 Evaluating the regression model
+
+The differences between the observed $y$ values and the corresponding
+fitted $\hat{y}$ values are the training-set errors or “residuals”
+defined as,
+
+$$
+\begin{align*}
+  e_t &= y_t - \hat{y}_t \\
+      &= y_t - \hat\beta_{0} - \hat\beta_{1} x_{1,t} - \hat\beta_{2} x_{2,t} - \cdots - \hat\beta_{k} x_{k,t}
+\end{align*}
+$$
+
+for $t=1, \dots, T$.
+
+Each residual is the unpredictable component of the associated
+observation.
+
+The residuals have some useful properties including the following two:
+
+$$
+\sum_{t=1}^Te_t=0 \quad \text{and} \quad
+\sum_{t-1}^Tx_{k,t}e_t = 0 \quad \text{for all }k.
+$$
+
+As a result of these properties, it is clear that **the average of the
+residuals is zero**, and that **the correlation between the residuals
+and the observations for the predictor variable is also zero**. (This is
+not necessarily true when the intercept is omitted from the model.)
+
+After selecting the regression variables and fitting a regression model,
+it is necessary to plot the residuals to check that the assumptions of
+the model have been satisfied. **There are a series of plots that should
+be produced in order to check different aspects of the fitted model and
+the underlying assumptions.** We will now discuss each of them in turn.
+
+## ACF plot of residuals
+
+With time series data, it is highly likely that the value of a variable
+observed in the current time period will be similar to its value in the
+previous period, or even the period before that, and so on. Therefore
+when fitting a regression model to time series data, it is common to
+find autocorrelation in the residuals. In this case, the estimated model
+violates the assumption of no autocorrelation in the errors, and our
+forecasts may be inefficient — there is some information left over which
+should be accounted for in the model in order to obtain better
+forecasts. **The forecasts from a model with autocorrelated errors are
+still unbiased, and so are not “wrong”, but they will usually have
+larger prediction intervals than they need to.** Therefore we should
+always look at an ACF plot of the residuals.
+
+## Histogram of residuals
+
+It is always a good idea to check whether the residuals are normally
+distributed. As we explained earlier, this is not essential for
+forecasting, but it does make the calculation of prediction intervals
+much easier.
+
+### Example
+
+Using the `gg_tsresiduals()` function introduced in Section 5.3, we can
+obtain all the useful residual diagnostics mentioned above.
+
+``` r
+fit_consMR |> gg_tsresiduals()
+```
+
+![](Chapter7_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+
+``` r
+augment(fit_consMR) |>
+  features(.innov, ljung_box, lag = 10)
+```
+
+    ## # A tibble: 1 × 3
+    ##   .model lb_stat lb_pvalue
+    ##   <chr>    <dbl>     <dbl>
+    ## 1 tslm      18.9    0.0420
+
+The time plot shows some changing variation over time, but is otherwise
+relatively unremarkable. This heteroscedasticity will potentially make
+the prediction interval coverage inaccurate.
+
+\*\*heteroscedasticity\* (also spelled heteroskedasticity) refers to the
+circumstance in which the variability of a variable is unequal across
+the range of values of a second variable that predicts it.
+
+The histogram shows that the residuals seem to be slightly skewed, which
+may also affect the coverage probability of the prediction intervals.
+
+The autocorrelation plot shows a significant spike at lag 7, and a
+significant Ljung-Box test at the 5% level. However, the autocorrelation
+is not particularly large, and at lag 7 it is unlikely to have any
+noticeable impact on the forecasts or the prediction intervals. In
+Chapter 10 we discuss dynamic regression models used for better
+capturing information left in the residuals.
+
+## Residual plots against predictors
+
+We would expect the residuals to be randomly scattered without showing
+any systematic patterns. A simple and quick way to check this is to
+examine scatterplots of the residuals against each of the predictor
+variables. If these scatterplots show a pattern, then the relationship
+may be nonlinear and the model will need to be modified accordingly. See
+Section 7.7 for a discussion of nonlinear regression.
+
+It is also necessary to plot the residuals against any predictors that
+are not in the model. If any of these show a pattern, then the
+corresponding predictor may need to be added to the model (possibly in a
+nonlinear form).
+
+### Example
+
+``` r
+us_change |>
+  left_join(residuals(fit_consMR), by = "Quarter") |>
+  pivot_longer(Income:Unemployment,
+               names_to = "regressor", values_to = "x") |>
+  ggplot(aes(x = x, y = .resid)) +
+  geom_point() +
+  facet_wrap(. ~ regressor, scales = "free_x") +
+  labs(y = "Residuals", x = "")
+```
+
+![](Chapter7_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+
+The residuals from the multiple regression model for forecasting US
+consumption plotted against each predictorseem to be randomly scattered.
+Therefore we are satisfied with these in this case.
+
+## Residual plots against fitted values
+
+A plot of the residuals against the fitted values should also show no
+pattern. If a pattern is observed, there may be “heteroscedasticity” in
+the errors which means that the variance of the residuals may not be
+constant. If this problem occurs, a transformation of the forecast
+variable such as a logarithm or square root may be required (see Section
+3.1).
+
+### Example
+
+``` r
+augment(fit_consMR) |>
+  ggplot(aes(x = .fitted, y = .resid)) +
+  geom_point() +
+  labs(x = "Fitted", y = "Residuals")
+```
+
+![](Chapter7_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+
+Continuing the previous example, Figure 7.10 shows the residuals plotted
+against the fitted values. The random scatter suggests the errors are
+homoscedastic.
+
+**Homoscedasticity** describes a situation in which the error term (that
+is, the “noise” or random disturbance in the relationship between the
+independent variables and the dependent variable) is the same across all
+values of the independent variables.
+
+## Outliers and influential observations
+
+Observations that take extreme values compared to the majority of the
+data are called **outliers**. Observations that have a large influence
+on the estimated coefficients of a regression model are called
+**influential observations**. **Usually, influential observations are
+also outliers that are extreme in the $x$ direction.**
+
+There are formal methods for detecting outliers and influential
+observations that are beyond the scope of this textbook. As we suggested
+at the beginning of Chapter 2, becoming familiar with your data prior to
+performing any analysis is of vital importance. A scatter plot of $y$
+against each $x$ is always a useful starting point in regression
+analysis, and often helps to identify unusual observations.
+
+One source of outliers is incorrect data entry. Simple descriptive
+statistics of your data can identify minima and maxima that are not
+sensible. If such an observation is identified, and it has been recorded
+incorrectly, it should be corrected or removed from the sample
+immediately.
+
+Outliers also occur when some observations are simply different. In this
+case it may not be wise for these observations to be removed. If an
+observation has been identified as a likely outlier, it is important to
+study it and analyse the possible reasons behind it. The decision to
+remove or retain an observation can be a challenging one (especially
+when outliers are influential observations). It is wise to report
+results both with and without the removal of such observations
+
+### Example
+
+Figure 7.11 highlights the effect of a single outlier when regressing US
+consumption on income (the example introduced in Section 7.1). In the
+left panel the outlier is only extreme in the direction of $y$, as the
+percentage change in consumption has been incorrectly recorded as -4%.
+The orange line is the regression line fitted to the data which includes
+the outlier, compared to the black line which is the line fitted to the
+data without the outlier. In the right panel the outlier now is also
+extreme in the direction of $x$ with the 4% decrease in consumption
+corresponding to a 6% increase in income. In this case the outlier is
+extremely influential as the orange line now deviates substantially from
+the black line.
+
+<img src="https://otexts.com/fpp3/fpp_files/figure-html/outlier-1.png" />
+
+## Spurious regression
+
+More often than not, time series data are “non-stationary”; that is, the
+values of the time series do not fluctuate around a constant mean or
+with a constant variance. We will deal with time series stationarity in
+more detail in Chapter 9, but here we need to address the effect that
+non-stationary data can have on regression models.
+
+For example, consider the two variables plotted in Figure 7.12. These
+appear to be related simply because they both trend upwards in the same
+manner. However, air passenger traffic in Australia has nothing to do
+with rice production in Guinea.
+
+<img src="https://otexts.com/fpp3/fpp_files/figure-html/spurious-1.png" />
+
+``` r
+fit <- aus_airpassengers |>
+  filter(Year <= 2011) |>
+  left_join(guinea_rice, by = "Year") |>
+  model(TSLM(Passengers ~ Production))
+report(fit)
+```
+
+    ## Series: Passengers 
+    ## Model: TSLM 
+    ## 
+    ## Residuals:
+    ##     Min      1Q  Median      3Q     Max 
+    ## -5.9448 -1.8917 -0.3272  1.8620 10.4210 
+    ## 
+    ## Coefficients:
+    ##             Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)   -7.493      1.203  -6.229 2.25e-07 ***
+    ## Production    40.288      1.337  30.135  < 2e-16 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 3.239 on 40 degrees of freedom
+    ## Multiple R-squared: 0.9578,  Adjusted R-squared: 0.9568
+    ## F-statistic: 908.1 on 1 and 40 DF, p-value: < 2.22e-16
+
+``` r
+fit |> gg_tsresiduals()
+```
+
+![](Chapter7_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+
+Regressing non-stationary time series can lead to spurious regressions.
+The output of regressing Australian air passengers on rice production in
+Guinea is shown in Figure 7.13. High $R^2$ and high residual
+autocorrelation can be signs of spurious regression. Notice these
+features in the output below. We discuss the issues surrounding
+non-stationary data and spurious regressions in more detail in Chapter
+10.
+
+Cases of spurious regression might appear to give reasonable short-term
+forecasts, but they will generally not continue to work into the future.
