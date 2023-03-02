@@ -754,7 +754,7 @@ Regressing non-stationary time series can lead to spurious regressions.
 The output of regressing Australian air passengers on rice production in
 Guinea is shown in Figure 7.13. High $R^2$ and high residual
 autocorrelation can be signs of spurious regression. Notice these
-features in the output below. We discuss the issues surrounding
+features in the output above. We discuss the issues surrounding
 non-stationary data and spurious regressions in more detail in Chapter
 10.
 

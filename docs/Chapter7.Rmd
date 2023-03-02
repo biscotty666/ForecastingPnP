@@ -1,11 +1,11 @@
 ---
 title: "Chapter 7 Time series regression"
 output:
-  github_document:
-    toc: true
   html_document:
     toc: true
     df_print: paged
+  github_document:
+    toc: true
 ---
 
 In this chapter we discuss regression models. The basic concept is that we forecast the time series of interest $y$ assuming that it has a linear relationship with other time series $x$.
@@ -372,7 +372,7 @@ report(fit)
 fit |> gg_tsresiduals()
 ```
 
-Regressing non-stationary time series can lead to spurious regressions. The output of regressing Australian air passengers on rice production in Guinea is shown in Figure 7.13. High $R^2$ and high residual autocorrelation can be signs of spurious regression. Notice these features in the output below. We discuss the issues surrounding non-stationary data and spurious regressions in more detail in Chapter 10.
+Regressing non-stationary time series can lead to spurious regressions. The output of regressing Australian air passengers on rice production in Guinea is shown in Figure 7.13. High $R^2$ and high residual autocorrelation can be signs of spurious regression. Notice these features in the output above. We discuss the issues surrounding non-stationary data and spurious regressions in more detail in Chapter 10.
 
 Cases of spurious regression might appear to give reasonable short-term forecasts, but they will generally not continue to work into the future.
 
