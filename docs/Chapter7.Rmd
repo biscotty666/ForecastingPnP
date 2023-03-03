@@ -1,11 +1,11 @@
 ---
 title: "Chapter 7 Time series regression"
 output:
-  github_document:
-    toc: true
   html_document:
     toc: true
     df_print: paged
+  github_document:
+    toc: true
 ---
 
 In this chapter we discuss regression models. The basic concept is that we forecast the time series of interest $y$ assuming that it has a linear relationship with other time series $x$.
