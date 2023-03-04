@@ -89,6 +89,23 @@ Chapter 7 Time series regression
   - <a href="#beware-of-inference-after-selecting-preditors"
     id="toc-beware-of-inference-after-selecting-preditors">Beware of
     inference after selecting preditors</a>
+- <a href="#76-forecasting-with-regression"
+  id="toc-76-forecasting-with-regression">7.6 Forecasting with
+  regression</a>
+  - <a href="#ex-ante-verses-ex-post-forecasts"
+    id="toc-ex-ante-verses-ex-post-forecasts">Ex-ante verses ex-post
+    forecasts</a>
+  - <a href="#example-australian-quarterly-beer-production-1"
+    id="toc-example-australian-quarterly-beer-production-1">Example:
+    Australian quarterly beer production</a>
+  - <a href="#scenario-based-forecasting"
+    id="toc-scenario-based-forecasting">Scenario based forecasting</a>
+  - <a href="#building-a-predictive-regression-model"
+    id="toc-building-a-predictive-regression-model">Building a predictive
+    regression model</a>
+  - <a href="#prediction-intervals" id="toc-prediction-intervals">Prediction
+    intervals</a>
+    - <a href="#example-4" id="toc-example-4">Example</a>
 
 In this chapter we discuss regression models. The basic concept is that
 we forecast the time series of interest $y$ assuming that it has a
@@ -1383,3 +1400,223 @@ the assumptions behind the $p$-values. The procedures we recommend for
 selecting predictors are helpful when the model is used for forecasting;
 they are not helpful if you wish to study the effect of any predictor on
 the forecast variable.
+
+# 7.6 Forecasting with regression
+
+Recall that predictions of $y$ can be obtained using
+
+$$
+\hat{y_t} = \hat\beta_{0} + \hat\beta_{1} x_{1,t} + \hat\beta_{2} x_{2,t} + \cdots + \hat\beta_{k} x_{k,t},
+$$
+
+which comprises the estimated coefficients and ignores the error in the
+regression equation. Plugging in the values of the predictor variables
+$x_{1,t},\dots,x_{k,t}$ for $t=1,\dots,T$ returns the fitted (training
+set) values of $y$. What we are interested in here, however, is
+forecasting **future** values of $y$.
+
+## Ex-ante verses ex-post forecasts
+
+When using regression models for time series data, we need to
+distinguish between the different types of forecasts that can be
+produced, depending on what is assumed to be known when the forecasts
+are computed.
+
+**Ex-ante forecasts** are those that are made using only the information
+that is available in advance. For example, ex-ante forecasts for the
+percentage change in US consumption for quarters following the end of
+the sample, should only use information that was available up to and
+including 2019 Q2. **These are genuine forecasts**, made in advance
+using whatever information is available at the time. Therefore in order
+to generate ex-ante forecasts, the model requires forecasts of the
+predictors. To obtain these we can use one of the simple methods
+introduced in Section 5.2 or more sophisticated pure time series
+approaches that follow in Chapters 8 and 9. Alternatively, forecasts
+from some other source, such as a government agency, may be available
+and can be used.
+
+Ex-post forecasts are those that are made using later information on the
+predictors. For example, ex-post forecasts of consumption may use the
+actual observations of the predictors, once these have been observed.
+**These are not genuine forecasts**, but are useful for studying the
+behaviour of forecasting models.
+
+The model from which ex-post forecasts are produced should not be
+estimated using data from the forecast period. That is, ex-post
+forecasts can assume knowledge of the predictor variables (the $x$
+variables), but should not assume knowledge of the data that are to be
+forecast (the $y$ variable).
+
+A comparative evaluation of ex-ante forecasts and ex-post forecasts can
+help to separate out the sources of forecast uncertainty. This will show
+whether forecast errors have arisen due to poor forecasts of the
+predictor or due to a poor forecasting model.
+
+## Example: Australian quarterly beer production
+
+Normally, we cannot use actual future values of the predictor variables
+when producing ex-ante forecasts because their values will not be known
+in advance. However, the special predictors introduced in Section 7.4
+are all known in advance, as they are based on calendar variables (e.g.,
+seasonal dummy variables or public holiday indicators) or deterministic
+functions of time (e.g. time trend). In such cases, there is no
+difference between ex-ante and ex-post forecasts.
+
+``` r
+recent_production <- aus_production |>
+  filter(year(Quarter) >= 1992)
+fit_beer <- recent_production |>
+  model(TSLM(Beer ~ trend() + season()))
+fc_beer <- forecast(fit_beer)
+fc_beer |>
+  autoplot(recent_production) +
+  labs(
+    title = "Forecasts of beer production using regression",
+    y = "megalitres"
+  )
+```
+
+![](Chapter7_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
+
+## Scenario based forecasting
+
+In this setting, the forecaster assumes possible scenarios for the
+predictor variables that are of interest. For example, a US policy maker
+may be interested in comparing the predicted change in consumption when
+there is a constant growth of 1% and 0.5% respectively for income and
+savings with no change in the employment rate, versus a respective
+decline of 1% and 0.5%, for each of the four quarters following the end
+of the sample. The resulting forecasts are calculated below and shown in
+Figure 7.18. We should note that prediction intervals for scenario based
+forecasts do not include the uncertainty associated with the future
+values of the predictor variables. They assume that the values of the
+predictors are known in advance.
+
+``` r
+fit_consBest <- us_change |>
+  model(
+    lm = TSLM(Consumption ~ Income + Savings + Unemployment)
+  )
+future_scenarios <- scenarios(
+  Increase = new_data(us_change, 4) |>
+    mutate(Income=1, Savings=0.5, Unemployment=0),
+  Decrease = new_data(us_change, 4) |>
+    mutate(Income=-1, Savings=-0.5, Unemployment=0),
+  names_to = "Scenario")
+
+fc <- forecast(fit_consBest, new_data = future_scenarios)
+
+us_change |>
+  autoplot(Consumption) +
+  autolayer(fc) +
+  labs(title = "US consumption", y = "% change")
+```
+
+![](Chapter7_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
+
+## Building a predictive regression model
+
+The great advantage of regression models is that they can be used to
+capture important relationships between the forecast variable of
+interest and the predictor variables. However, for ex ante forecasts,
+these models require future values of each predictor, which can be
+challenging. If forecasting each predictor is too difficult, we may use
+scenario-based forecasting instead, where we assume specific future
+values for all predictors.
+
+An alternative formulation is to use as predictors their lagged values.
+Assuming that we are interested in generating a $h$-step ahead forecast
+we write
+
+$$
+y_{t+h}=\beta_0+\beta_1x_{1,t}+\dots+\beta_kx_{k,t}+\varepsilon_{t+h}
+$$
+
+for $h=1,2,\dots$. The predictor set is formed by values of the $x$s
+that are observed $h$ time periods prior to observing $y$. Therefore
+when the estimated model is projected into the future, i.e., beyond the
+end of the sample $T$, all predictor values are available.
+
+Including lagged values of the predictors does not only make the model
+operational for easily generating forecasts, it also makes it
+intuitively appealing. For example, the effect of a policy change with
+the aim of increasing production may not have an instantaneous effect on
+consumption expenditure. It is most likely that this will happen with a
+lagging effect. We touched upon this in Section 7.4 when briefly
+introducing distributed lags as predictors. Several directions for
+generalising regression models to better incorporate the rich dynamics
+observed in time series are discussed in Section 10.
+
+## Prediction intervals
+
+With each forecast for the change in consumption in Figure 7.18, 95% and
+80% prediction intervals are also included. The general formulation of
+how to calculate prediction intervals for multiple regression models is
+presented in Section 7.9. As this involves some advanced matrix algebra
+we present here the case for calculating prediction intervals for a
+simple regression, where a forecast can be generated using the equation,
+
+$$
+\hat{y}=\hat{\beta}_0+\hat{\beta}_1x.
+$$
+
+Assuming that the regression errors are normally distributed, an
+approximate 95% prediction interval associated with this forecast is
+given by
+
+$$
+\begin{equation}
+  \hat{y} \pm 1.96 \hat{\sigma}_e\sqrt{1+\frac{1}{T}+\frac{(x-\bar{x})^2}{(T-1)s_x^2}},
+  \tag{7.4}
+\end{equation}
+$$
+
+where $T$ is the total number of observations, $\bar{x}$ is the mean of
+the observed $x$ values, $s_x$ is the standard deviation of the observed
+$x$ values and $\hat{\sigma}_e$ is the standard error of the regression
+given by Equation (7.3). Similarly, an 80% prediction interval can be
+obtained by replacing 1.96 by 1.28. Other prediction intervals can be
+obtained by replacing the 1.96 with the appropriate value given in Table
+5.1. If the `fable` package is used to obtain prediction intervals, more
+exact calculations are obtained (especially for small values of $T$)
+than what is given by Equation (7.4).
+
+Equation (7.4) shows that the prediction interval is wider when $x$ is
+far from $\bar{x}$. That is, we are more certain about our forecasts
+when considering values of the predictor variable close to its sample
+mean.
+
+### Example
+
+The estimated simple regression line in the US consumption example is
+
+$$\hat{y}_t=0.54 + 0.27x_t.$$
+
+Assuming that for the next four quarters, personal income will increase
+by its historical mean value of $\bar{x}=0.73\%$, consumption is
+forecast to increase by $0.74\%$ and the corresponding 80% and 95%
+prediction intervals are $[−0.02,1.5]$ and $[−0.42,1.9]$ respectively
+(calculated using R). If we assume an extreme increase of 12% in income,
+then the prediction intervals are considerably wider as shown in Figure
+7.19.
+
+``` r
+fit_cons <- us_change |>
+  model(TSLM(Consumption ~ Income))
+new_cons <- scenarios(
+  "Average increase" = new_data(us_change, 4) |>
+    mutate(Income = mean(us_change$Income)),
+  "Extreme increase" = new_data(us_change, 4) |>
+    mutate(Income = 12),
+  names_to = "Scenario"
+)
+
+fcast <- forecast(fit_cons, new_cons)
+
+us_change |>
+  autoplot(Consumption) +
+  autolayer(fcast) +
+  labs(title = "US consumption", y = "% change")
+```
+
+![](Chapter7_files/figure-gfm/unnamed-chunk-25-1.png)<!-- -->
