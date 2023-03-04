@@ -63,6 +63,32 @@ Chapter 7 Time series regression
   - <a href="#trading-days" id="toc-trading-days">Trading days</a>
   - <a href="#easter" id="toc-easter">Easter</a>
   - <a href="#fourier-series" id="toc-fourier-series">Fourier series</a>
+- <a href="#75-selecting-predictors" id="toc-75-selecting-predictors">7.5
+  Selecting predictors</a>
+  - <a href="#adjusted-r2" id="toc-adjusted-r2">Adjusted <span
+    class="math inline"><em>R</em><sup>2</sup></span></a>
+  - <a href="#cross-validation-cv"
+    id="toc-cross-validation-cv">Cross-validation (<strong>CV</strong>)</a>
+  - <a href="#akaikes-information-criterion-aic"
+    id="toc-akaikes-information-criterion-aic">Akaike’s Information
+    Criterion (<strong>AIC</strong>)</a>
+  - <a href="#corrected-akaikes-information-criterion"
+    id="toc-corrected-akaikes-information-criterion">Corrected Akaike’s
+    Information Criterion</a>
+  - <a href="#schwarzs-bayesian-information-criterion-bic"
+    id="toc-schwarzs-bayesian-information-criterion-bic">Schwarz’s Bayesian
+    Information Criterion (<strong>BIC</strong>)</a>
+  - <a href="#which-measure-should-we-use"
+    id="toc-which-measure-should-we-use">Which measure should we use</a>
+  - <a href="#example-us-consumption"
+    id="toc-example-us-consumption">Example: US consumption</a>
+  - <a href="#best-subset-regression" id="toc-best-subset-regression">Best
+    subset regression</a>
+  - <a href="#stepwise-regression" id="toc-stepwise-regression">Stepwise
+    regression</a>
+  - <a href="#beware-of-inference-after-selecting-preditors"
+    id="toc-beware-of-inference-after-selecting-preditors">Beware of
+    inference after selecting preditors</a>
 
 In this chapter we discuss regression models. The basic concept is that
 we forecast the time series of interest $y$ assuming that it has a
@@ -1090,3 +1116,270 @@ the seasonal pattern will follow a simple sine wave. A regression model
 containing Fourier terms is often called a harmonic regression because
 the successive Fourier terms represent harmonics of the first two
 Fourier terms.
+
+# 7.5 Selecting predictors
+
+When there are many possible predictors, we need some strategy for
+selecting the best predictors to use in a regression model.
+
+A common approach that is not recommended is to plot the forecast
+variable against a particular predictor and if there is no noticeable
+relationship, drop that predictor from the model. This is invalid
+because it is not always possible to see the relationship from a
+scatterplot, especially when the effects of other predictors have not
+been accounted for.
+
+Another common approach which is also invalid is to do a multiple linear
+regression on all the predictors and disregard all variables whose
+$p$-values are greater than 0.05. To start with, statistical
+significance does not always indicate predictive value. Even if
+forecasting is not the goal, this is not a good strategy because the
+**$p$-values can be misleading when two or more predictors are
+correlated with each other** (see Section 7.8).
+
+Instead, we will use a measure of predictive accuracy. Five such
+measures are introduced in this section. They can be shown using the
+glance() function, here applied to the model for US consumption:
+
+``` r
+glance(fit_consMR) |>
+  select(adj_r_squared, CV, AIC, AICc, BIC)
+```
+
+    ## # A tibble: 1 × 5
+    ##   adj_r_squared    CV   AIC  AICc   BIC
+    ##           <dbl> <dbl> <dbl> <dbl> <dbl>
+    ## 1         0.763 0.104 -457. -456. -437.
+
+We compare these values against the corresponding values from other
+models. For the CV, AIC, AICc and BIC measures, we want to find the
+model with the lowest value; for Adjusted $R^2$, we seek the model with
+the highest value.
+
+## Adjusted $R^2$
+
+Computer output for a regression will always give the $R^2$ value,
+discussed in Section 7.2. However, it is not a good measure of the
+predictive ability of a model. It measures how well the model fits the
+historical data, but not how well the model will forecast future data.
+
+In addition, $R^2$ does not allow for “degrees of freedom”. Adding any
+variable tends to increase the value of $R^2$, even if that variable is
+irrelevant. For these reasons, **forecasters should not use $R^2$ to
+determine whether a model will give good predictions, as it will lead to
+overfitting**.
+
+An equivalent idea is to select the model which gives the minimum sum of
+squared errors (SSE), given by
+
+$$
+\text{SSE} = \sum_{t=1}^T e_{t}^2.
+$$
+
+Minimising the SSE is equivalent to maximising $R^2$ and will always
+choose the model with the most variables, and so is not a valid way of
+selecting predictors.
+
+An alternative which is designed to overcome these problems is the
+adjusted $R^2$ (also called “R-bar-squared”):
+
+$$
+\bar{R}^2 = 1-(1-R^2)\frac{T-1}{T-k-1},
+$$ where $T$ is the number of observations and $k$ is the number of
+predictors. This is an improvement on $R^2$, as it will no longer
+increase with each added predictor. Using this measure, the best model
+will be the one with the largest value of $\bar{R}^2$. Maximising
+$\bar{R}^2$ is equivalent to minimising the standard error
+$\hat{\sigma}_e$ given in Equation (7.3).
+
+Maximising $\bar{R}^2$ works quite well as a method of selecting
+predictors, although it does tend to err on the side of selecting too
+many predictors.
+
+## Cross-validation (**CV**)
+
+Time series cross-validation was introduced in Section 5.8 as a general
+tool for determining the predictive ability of a model. For regression
+models, it is also possible to use classical leave-one-out
+cross-validation to selection predictors (Bergmeir et al., 2018). This
+is faster and makes more efficient use of the data. The procedure uses
+the following steps:
+
+1.  Remove observation $t$ from the data set, and fit the model using
+    the remaining data. Then compute the error ($e^*_t=y_t−\hat{y}_t$)
+    for the omitted observation. (This is not the same as the residual
+    because the $t$th observation was not used in estimating the value
+    of $\hat{y}_t$.)
+
+2.  Repeat step 1 for $t=1,\dots,T$.
+
+3.  Compute the $MSE$ from $e^*_1,\dots,e^*_T$. We shall call this the
+    **CV**.
+
+Although this looks like a time-consuming procedure, there are fast
+methods of calculating CV, so that it takes no longer than fitting one
+model to the full data set. The equation for computing CV efficiently is
+given in Section 7.9. Under this criterion, the best model is the one
+with the smallest value of CV.
+
+## Akaike’s Information Criterion (**AIC**)
+
+$$
+\text{AIC} = T\log\left(\frac{\text{SSE}}{T}\right) + 2(k+2),
+$$
+
+where $T$ is the number of observations used for estimation and $k$ is
+the number of predictors in the model. Different computer packages use
+slightly different definitions for the AIC, although they should all
+lead to the same model being selected. The $k+2$ part of the equation
+occurs because there are $k+2$ parameters in the model: the $k$
+coefficients for the predictors, the intercept and the variance of the
+residuals. The idea here is to penalise the fit of the model (SSE) with
+the number of parameters that need to be estimated.
+
+**The model with the minimum value of the AIC is often the best model
+for forecasting.** For large values of $T$, minimising the AIC is
+equivalent to minimising the CV value.
+
+## Corrected Akaike’s Information Criterion
+
+For small values of $T$, the AIC tends to select too many predictors,
+and so a bias-corrected version of the AIC has been developed,
+
+$$
+\text{AIC}_{\text{c}} = \text{AIC} + \frac{2(k+2)(k+3)}{T-k-3}.
+$$
+
+**As with the AIC, the AICc should be minimised.**
+
+## Schwarz’s Bayesian Information Criterion (**BIC**)
+
+aka SBIC or SC.
+
+$$
+\text{BIC} = T\log\left(\frac{\text{SSE}}{T}\right) + (k+2)\log(T)
+$$
+
+As with the AIC, minimising the BIC is intended to give the best model.
+The model chosen by the BIC is either the same as that chosen by the
+AIC, or one with fewer terms. This is because the BIC penalises the
+number of parameters more heavily than the AIC. For large values of $T$,
+minimising BIC is similar to leave-$v$-out cross-validation when
+$v=T[1−1/(\log{T}-1)]$.
+
+## Which measure should we use
+
+While $\bar{R}^2$ is widely used, and has been around longer than the
+other measures, its tendency to select too many predictor variables
+makes it less suitable for forecasting.
+
+Many statisticians like to use the BIC because it has the feature that
+if there is a true underlying model, the BIC will select that model
+given enough data. However, in reality, there is rarely, if ever, a true
+underlying model, and even if there was a true underlying model,
+selecting that model will not necessarily give the best forecasts
+(because the parameter estimates may not be accurate).
+
+Consequently, **we recommend that one of the AICc, AIC, or CV statistics
+be used**, each of which has forecasting as their objective. If the
+value of $T$ is large enough, they will all lead to the same model. In
+most of the examples in this book, we use the AICc value to select the
+forecasting model.
+
+## Example: US consumption
+
+In the multiple regression example for forecasting US consumption we
+considered four predictors. With four predictors, there are $2^4=16$
+possible models. Now we can check if all four predictors are actually
+useful, or whether we can drop one or more of them. All 16 models were
+fitted and the results are summarised in Table 7.1. A $\bullet$
+indicates that the predictor was included in the model. Hence the first
+row shows the measures of predictive accuracy for a model including all
+four predictors.
+
+The results have been sorted according to the AICc. Therefore the best
+models are given at the top of the table, and the worst at the bottom of
+the table.
+
+|  Income   | Production |  Savings  | Unemployment | AdjR2 |    CV |    AIC |   AIC2 |    BIC |
+|:---------:|:----------:|:---------:|:------------:|------:|------:|-------:|-------:|-------:|
+| $\bullet$ | $\bullet$  | $\bullet$ |  $\bullet$   | 0.763 | 0.104 | -456.6 | -456.1 | -436.9 |
+| $\bullet$ | $\bullet$  | $\bullet$ |              | 0.761 | 0.105 | -455.2 | -454.9 | -438.7 |
+| $\bullet$ |            | $\bullet$ |  $\bullet$   | 0.760 | 0.104 | -454.4 | -454.1 | -437.9 |
+| $\bullet$ |            | $\bullet$ |              | 0.735 | 0.114 | -435.7 | -435.5 | -422.6 |
+| $\bullet$ | $\bullet$  |           |  $\bullet$   | 0.366 | 0.271 | -262.3 | -262.0 | -245.8 |
+|           | $\bullet$  | $\bullet$ |  $\bullet$   | 0.349 | 0.279 | -257.1 | -256.8 | -240.7 |
+| $\bullet$ |            |           |  $\bullet$   | 0.345 | 0.276 | -256.9 | -256.6 | -243.7 |
+| $\bullet$ | $\bullet$  |           |              | 0.336 | 0.282 | -254.2 | -254.0 | -241.0 |
+|           | $\bullet$  | $\bullet$ |              | 0.324 | 0.287 | -250.7 | -250.5 | -237.5 |
+|           |            | $\bullet$ |  $\bullet$   | 0.311 | 0.291 | -246.9 | -246.7 | -233.7 |
+|           | $\bullet$  |           |  $\bullet$   | 0.308 | 0.293 | -246.1 | -245.9 | -232.9 |
+|           | $\bullet$  |           |              | 0.276 | 0.304 | -238.1 | -238.0 | -228.2 |
+|           |            |           |  $\bullet$   | 0.274 | 0.303 | -237.4 | -237.3 | -227.5 |
+| $\bullet$ |            |           |              | 0.143 | 0.356 | -204.6 | -204.5 | -194.7 |
+|           |            | $\bullet$ |              | 0.061 | 0.388 | -186.5 | -186.4 | -176.7 |
+|           |            |           |              | 0.000 | 0.409 | -175.1 | -175.0 | -168.5 |
+
+The best model contains all four predictors. However, a closer look at
+the results reveals some interesting features.
+
+1.  There is clear separation between the models in the first four rows
+    and the ones below. This indicates that `Income` and `Savings` are
+    both more important variables than `Production` and `Unemployment`.
+
+2.  The first three rows have almost identical values of CV, AIC and
+    AICc. So we could possibly drop either the `Production` variable, or
+    the `Unemployment` variable, and get similar forecasts. Note that
+    `Production` and `Unemployment` are highly (negatively) correlated,
+    as shown in Figure 7.5, so most of the predictive information in
+    Production is also contained in the Unemployment variable.
+
+## Best subset regression
+
+**Where possible, all potential regression models should be fitted** (as
+was done in the example above) and the best model should be selected
+based on one of the measures discussed. This is known as “best subsets”
+regression or “all possible subsets” regression.
+
+## Stepwise regression
+
+If there are a large number of predictors, it is not possible to fit all
+possible models. For example, 40 predictors leads to \$2^40\>\$1
+trillion possible models! Consequently, a strategy is required to limit
+the number of models to be explored.
+
+An approach that works quite well is backwards stepwise regression:
+
+- Start with the model containing all potential predictors.
+- Remove one predictor at a time. Keep the model if it improves the
+  measure of predictive accuracy.
+- Iterate until no further improvement.
+
+If the number of potential predictors is too large, then the backwards
+stepwise regression will not work and forward stepwise regression can be
+used instead. This procedure starts with a model that includes only the
+intercept. Predictors are added one at a time, and the one that most
+improves the measure of predictive accuracy is retained in the model.
+The procedure is repeated until no further improvement can be achieved.
+
+Alternatively for either the backward or forward direction, a starting
+model can be one that includes a subset of potential predictors. In this
+case, an extra step needs to be included. For the backwards procedure we
+should also consider adding a predictor with each step, and for the
+forward procedure we should also consider dropping a predictor with each
+step. These are referred to as hybrid procedures.
+
+It is important to realise that any stepwise approach is not guaranteed
+to lead to the best possible model, but it almost always leads to a good
+model. For further details see James et al. (2014).
+
+## Beware of inference after selecting preditors
+
+We do not discuss statistical inference of the predictors in this book
+(e.g., looking at $p$-values associated with each predictor). If you do
+wish to look at the statistical significance of the predictors, beware
+that any procedure involving selecting predictors first will invalidate
+the assumptions behind the $p$-values. The procedures we recommend for
+selecting predictors are helpful when the model is used for forecasting;
+they are not helpful if you wish to study the effect of any predictor on
+the forecast variable.
