@@ -11,6 +11,20 @@ Chapter 8 Exponential smoothing
   - <a href="#optimisation" id="toc-optimisation">Optimisation</a>
   - <a href="#example-algerian-exports"
     id="toc-example-algerian-exports">Example: Algerian exports</a>
+- <a href="#82-methods-with-trend" id="toc-82-methods-with-trend">8.2
+  Methods with trend</a>
+  - <a href="#holts-linear-trend-method"
+    id="toc-holts-linear-trend-method">Holt’s linear trend method</a>
+  - <a href="#example-australian-population"
+    id="toc-example-australian-population">Example: Australian
+    population</a>
+  - <a href="#damped-trend-methods" id="toc-damped-trend-methods">Damped
+    trend methods</a>
+  - <a href="#example-australian-population-1"
+    id="toc-example-australian-population-1">Example: Australian
+    Population</a>
+  - <a href="#example-internet-useage"
+    id="toc-example-internet-useage">Example: Internet useage</a>
 
 ``` r
 library(fpp3)
@@ -62,6 +76,8 @@ models generate identical point forecasts to the methods discussed in
 the first part of the chapter, but also generate prediction intervals.
 Furthermore, this statistical framework allows for genuine model
 selection between competing models.
+
+`ETS` from `fable`: Exponential smoothing state space model
 
 # 8.1 Simple exponential smoothing
 
@@ -289,18 +305,7 @@ fit <- algeria_economy |>
   model(ETS(Exports ~ error("A") + trend("N") + season("N")))
 fc <- fit |>
   forecast(h = 5)
-fc
 ```
-
-    ## # A fable: 5 x 5 [1Y]
-    ## # Key:     Country, .model [1]
-    ##   Country .model                                           Year    Exports .mean
-    ##   <fct>   <chr>                                           <dbl>     <dist> <dbl>
-    ## 1 Algeria "ETS(Exports ~ error(\"A\") + trend(\"N\") + s…  2018  N(22, 36)  22.4
-    ## 2 Algeria "ETS(Exports ~ error(\"A\") + trend(\"N\") + s…  2019  N(22, 61)  22.4
-    ## 3 Algeria "ETS(Exports ~ error(\"A\") + trend(\"N\") + s…  2020  N(22, 86)  22.4
-    ## 4 Algeria "ETS(Exports ~ error(\"A\") + trend(\"N\") + s…  2021 N(22, 111)  22.4
-    ## 5 Algeria "ETS(Exports ~ error(\"A\") + trend(\"N\") + s…  2022 N(22, 136)  22.4
 
 This gives parameter estimates $\hat{\alpha}=0.84$ and
 $\hat{\ell}_0=39.5$, obtained by minimising SSE over periods
@@ -311,28 +316,29 @@ second last column shows the estimated level for times $t=0$ to $t=58$;
 the last few rows of the last column show the forecasts for \$h=\$1 to
 5-steps ahead.
 
-| Year     | Time $t$ | Observation $y_t$ | Level $\ell_t$ | Forecast $\hat{y}_{t|t-1}$ |     |
-|:---------|:---------|:------------------|:---------------|:---------------------------|:----|
-| 1959     | 0        |                   | 39.54          |                            |     |
-| 1960     | 1        | 39.04             | 39.12          | 39.54                      |     |
-| 1961     | 2        | 46.24             | 45.10          | 39.12                      |     |
-| 1962     | 3        | 19.79             | 23.84          | 45.10                      |     |
-| 1963     | 4        | 24.68             | 24.55          | 23.84                      |     |
-| 1964     | 5        | 25.08             | 25.00          | 24.55                      |     |
-| 1965     | 6        | 22.60             | 22.99          | 25.00                      |     |
-| 1966     | 7        | 25.99             | 25.51          | 22.99                      |     |
-| 1967     | 8        | 23.43             | 23.77          | 25.51                      |     |
-| $\vdots$ | $\vdots$ | $\vdots$          | $\vdots$       | $\vdots$                   |     |
-| 2014     | 55       | 30.22             | 30.80          | 33.85                      |     |
-| 2015     | 56       | 23.17             | 24.39          | 30.80                      |     |
-| 2016     | 57       | 20.86             | 21.43          | 24.39                      |     |
-| 2017     | 58       | 22.64             | 22.44          | 21.43                      |     |
-|          | $h$      |                   |                | $\hat{y}_{T+h|T}$          |     |
-| 2018     | 1        |                   |                | 22.44                      |     |
-| 2019     | 2        |                   |                | 22.44                      |     |
-| 2020     | 3        |                   |                | 22.44                      |     |
-| 2021     | 4        |                   |                | 22.44                      |     |
-| 2022     | 5        |                   |                | 22.44                      |     |
+| Year     | Time     | Observation | Level    | Forecast           |     |
+|:---------|:---------|:------------|:---------|:-------------------|:----|
+|          | $t$      | $y_t$       | $\ell_t$ | $\hat{y}_{t\|t-1}$ |     |
+| 1959     | 0        |             | 39.54    |                    |     |
+| 1960     | 1        | 39.04       | 39.12    | 39.54              |     |
+| 1961     | 2        | 46.24       | 45.10    | 39.12              |     |
+| 1962     | 3        | 19.79       | 23.84    | 45.10              |     |
+| 1963     | 4        | 24.68       | 24.55    | 23.84              |     |
+| 1964     | 5        | 25.08       | 25.00    | 24.55              |     |
+| 1965     | 6        | 22.60       | 22.99    | 25.00              |     |
+| 1966     | 7        | 25.99       | 25.51    | 22.99              |     |
+| 1967     | 8        | 23.43       | 23.77    | 25.51              |     |
+| $\vdots$ | $\vdots$ | $\vdots$    | $\vdots$ | $\vdots$           |     |
+| 2014     | 55       | 30.22       | 30.80    | 33.85              |     |
+| 2015     | 56       | 23.17       | 24.39    | 30.80              |     |
+| 2016     | 57       | 20.86       | 21.43    | 24.39              |     |
+| 2017     | 58       | 22.64       | 22.44    | 21.43              |     |
+|          | $h$      |             |          | $\hat{y}_{T+h\|T}$ |     |
+| 2018     | 1        |             |          | 22.44              |     |
+| 2019     | 2        |             |          | 22.44              |     |
+| 2020     | 3        |             |          | 22.44              |     |
+| 2021     | 4        |             |          | 22.44              |     |
+| 2022     | 5        |             |          | 22.44              |     |
 
 The black line in Figure 8.2 shows the data, which has a changing level
 over time.
@@ -363,3 +369,283 @@ considerable uncertainty in the future exports over the five-year
 forecast period. <span style="background-color:#ffffb3;">So interpreting
 the point forecasts without accounting for the large uncertainty can be
 very misleading.\<\>
+
+# 8.2 Methods with trend
+
+## Holt’s linear trend method
+
+Holt (1957) extended simple exponential smoothing to allow the
+forecasting of data with a trend. This method involves a forecast
+equation and two smoothing equations (one for the level and one for the
+trend):
+
+$$
+\begin{align*}
+  \text{Forecast equation}&& \hat{y}_{t+h|t} &= \ell_{t} + hb_{t} \\
+  \text{Level equation}   && \ell_{t} &= \alpha y_{t} + (1 - \alpha)(\ell_{t-1} + b_{t-1})\\
+  \text{Trend equation}   && b_{t}    &= \beta^*(\ell_{t} - \ell_{t-1}) + (1 -\beta^*)b_{t-1},
+\end{align*}
+$$
+
+where $\ell_t$ denotes an estimate of the level of the series at time
+$t,b_t$ denotes an estimate of the trend (slope) of the series at time
+$t,\alpha$ is the smoothing parameter for the level, $0\le\alpha\le1$,
+and $\beta^*$ is the smoothing parameter for the trend,
+$0\le\beta^*\le1$. (We denote this as $\beta^*$ instead of $\beta$ for
+reasons that will be explained in Section 8.5.)
+
+As with simple exponential smoothing, the level equation here shows that
+$\ell_t$ is a weighted average of observation $y_t$ and the
+one-step-ahead training forecast for time $t$ , here given by
+$\ell_{t−1}+b_{t−1}$. The trend equation shows that $b_t$ is a weighted
+average of the estimated trend at time $t$ based on $\ell_t−\ell_{t−1}$
+and $b_{t−1}$, the previous estimate of the trend.
+
+The forecast function is no longer flat but trending. The $h$-step-ahead
+forecast is equal to the last estimated level plus $h$ times the last
+estimated trend value. Hence the forecasts are a linear function of $h$.
+
+## Example: Australian population
+
+``` r
+aus_economy <- global_economy |>
+  filter(Code == "AUS") |>
+  mutate(Pop = Population / 1e6)
+autoplot(aus_economy, Pop) +
+  labs(y = "Millions", title = "Australian population")
+```
+
+![](Chapter8_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+
+Figure 8.3 shows Australia’s annual population from 1960 to 2017. We
+will apply Holt’s method to this series. <span
+style="background-color:#ffffb3;">The smoothing parameters, $\alpha$ and
+$\beta^*$ , and the initial values $\ell_0$ and $b_0$ are estimated by
+minimising the SSE for the one-step training errors </span> as in
+Section 8.1.
+
+``` r
+fit <- aus_economy |>
+  model(
+    AAN = ETS(Pop ~ error("A") + trend("A") + season("N"))
+  )
+fc <- fit |> forecast(h = 10)
+fc
+```
+
+    ## # A fable: 10 x 5 [1Y]
+    ## # Key:     Country, .model [1]
+    ##    Country   .model  Year           Pop .mean
+    ##    <fct>     <chr>  <dbl>        <dist> <dbl>
+    ##  1 Australia AAN     2018 N(25, 0.0041)  25.0
+    ##  2 Australia AAN     2019  N(25, 0.011)  25.3
+    ##  3 Australia AAN     2020  N(26, 0.023)  25.7
+    ##  4 Australia AAN     2021  N(26, 0.039)  26.1
+    ##  5 Australia AAN     2022  N(26, 0.061)  26.4
+    ##  6 Australia AAN     2023   N(27, 0.09)  26.8
+    ##  7 Australia AAN     2024   N(27, 0.13)  27.2
+    ##  8 Australia AAN     2025   N(28, 0.17)  27.6
+    ##  9 Australia AAN     2026   N(28, 0.22)  27.9
+    ## 10 Australia AAN     2027   N(28, 0.29)  28.3
+
+The estimated smoothing coefficient for the level is
+$\hat{\alpha}=0.9999$ . The very high value shows that the level changes
+rapidly in order to capture the highly trended series. The estimated
+smoothing coefficient for the slope is $\hat{\beta}^*=0.3267$.This is
+relatively large suggesting that the trend also changes often (even if
+the changes are slight).
+
+In Table 8.2 we use these values to demonstrate the application of
+Holt’s method.
+
+| Year     | Time     | Observation | Level    | Slope    | Forecast           |     |
+|:---------|:---------|:------------|:---------|:---------|:-------------------|:----|
+|          | $t$      | $y_t$       | $\ell_t$ |          | $\hat{y}_{t\|t-1}$ |     |
+| 1959     | 0        |             | 10.05    | 0.22     |                    |     |
+| 1960     | 1        | 10.28       | 10.28    | 0.22     | 10.28              |     |
+| 1961     | 2        | 10.48       | 10.48    | 0.22     | 10.50              |     |
+| 1962     | 3        | 10.74       | 10.74    | 0.23     | 10.70              |     |
+| 1964     | 5        | 11.17       | 11.17    | 0.22     | 11.17              |     |
+| 1965     | 6        | 11.39       | 11.39    | 0.22     | 11.39              |     |
+| 1966     | 7        | 11.65       | 11.65    | 0.23     | 11.61              |     |
+| $\vdots$ | $\vdots$ | $\vdots$    | $\vdots$ | $\vdots$ | $\vdots$           |     |
+| 2014     | 55       | 23.50       | 23.50    | 0.37     | 23.52              |     |
+| 2015     | 56       | 23.85       | 23.85    | 0.36     | 23.87              |     |
+| 2016     | 57       | 24.21       | 24.21    | 0.36     | 24.21              |     |
+| 2017     | 58       | 24.60       | 24.60    | 0.37     | 24.57              |     |
+|          | $h$      |             |          |          | $\hat{y}_{T+h\|T}$ |     |
+| 2018     | 1        |             |          |          | 24.97              |     |
+| 2019     | 2        |             |          |          | 25.34              |     |
+| 2020     | 3        |             |          |          | 25.71              |     |
+| 2021     | 4        |             |          |          | 26.07              |     |
+| 2022     | 5        |             |          |          | 26.44              |     |
+| 2023     | 6        |             |          |          | 27.18              |     |
+| 2025     | 8        |             |          |          | 27.55              |     |
+| 2026     | 9        |             |          |          | 27.92              |     |
+| 2027     | 10       |             |          |          | 28.29              |     |
+
+## Damped trend methods
+
+The forecasts generated by Holt’s linear method display a constant trend
+(increasing or decreasing) indefinitely into the future. Empirical
+evidence indicates that these methods tend to over-forecast, especially
+for longer forecast horizons. Motivated by this observation, Gardner &
+McKenzie (1985) introduced a parameter that “dampens” the trend to a
+flat line some time in the future.
+<span style="background-color:#ffffb3;">Methods that include a damped
+trend have proven to be very successful, and are arguably the most
+popular individual methods when forecasts are required automatically for
+many series.\<\>
+
+In conjunction with the smoothing parameters $\alpha$ and $\beta^*$
+(with values between 0 and 1 as in Holt’s method), this method also
+includes a damping parameter $0\lt\phi\lt\1$:
+
+$$
+\begin{align*}
+  \hat{y}_{t+h|t} &= \ell_{t} + (\phi+\phi^2 + \dots + \phi^{h})b_{t} \\
+  \ell_{t} &= \alpha y_{t} + (1 - \alpha)(\ell_{t-1} + \phi b_{t-1})\\
+  b_{t} &= \beta^*(\ell_{t} - \ell_{t-1}) + (1 -\beta^*)\phi b_{t-1}.
+\end{align*}
+$$
+
+If $\phi=1$ , the method is identical to Holt’s linear method. For
+values between $0$ and $1$,$\phi$ dampens the trend so that it
+approaches a constant some time in the future. In fact, the forecasts
+converge to $\ell_T+\phi b_T/(1−\phi)$ as $h\to\infty$ for any value
+$0\lt\phi\lt1$. <span style="background-color:#ffffb3;">This means that
+short-run forecasts are trended while long-run forecasts are
+constant.</span>
+
+In practice, $\phi$ is rarely less than 0.8 as the damping has a very
+strong effect for smaller values. Values of $\phi$ close to 1 will mean
+that a damped model is not able to be distinguished from a non-damped
+model. <span style="background-color:#ffffb3;">For these reasons, we
+usually restrict $\phi$ to a minimum of 0.8 and a maximum of
+0.98.</span>
+
+## Example: Australian Population
+
+``` r
+aus_economy |>
+  model(
+    `Holt's method` = ETS(Pop ~ error("A") +
+                       trend("A") + season("N")),
+    `Damped Holt's method` = ETS(Pop ~ error("A") +
+                       trend("Ad", phi = 0.9) + season("N"))
+  ) |>
+  forecast(h = 15) |>
+  autoplot(aus_economy, level = NULL) +
+  labs(title = "Australian population",
+       y = "Millions") +
+  guides(colour = guide_legend(title = "Forecast"))
+```
+
+![](Chapter8_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
+Figure 8.4 shows the forecasts for years 2018–2032 generated from Holt’s
+linear trend method and the damped trend method.
+
+We have set the damping parameter to a relatively low number
+$(\phi=0.90)$ to exaggerate the effect of damping for comparison.
+Usually, we would estimate $\phi$ along with the other parameters. We
+have also used a rather large forecast horizon $(h=15)$ to highlight the
+difference between a damped trend and a linear trend.
+
+## Example: Internet useage
+
+In this example, we compare the forecasting performance of the three
+exponential smoothing methods that we have considered so far in
+forecasting the number of users connected to the internet via a server.
+The data is observed over 100 minutes and is shown in Figure 8.5.
+
+``` r
+www_usage <- as_tsibble(WWWusage)
+www_usage |> autoplot(value) +
+  labs(x = "Minute",
+       y = "Number of users",
+       title = "Internet usage per minute")
+```
+
+![](Chapter8_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+
+We will use time series cross-validation to compare the one-step
+forecast accuracy of the three methods.
+
+``` r
+www_usage |>
+  stretch_tsibble(.init = 10) |>
+  model(
+    SES = ETS(value ~ error("A") + trend("N") + season("N")),
+    Holt = ETS(value ~ error("A") + trend("A") + season("N")),
+    Damped = ETS(value ~ error("A") + trend("Ad") +
+                   season("N"))
+  ) |>
+  forecast(h = 1) |>
+  accuracy(www_usage)
+```
+
+    ## Warning: The future dataset is incomplete, incomplete out-of-sample data will be treated as missing. 
+    ## 1 observation is missing at 101
+
+    ## # A tibble: 3 × 10
+    ##   .model .type     ME  RMSE   MAE   MPE  MAPE  MASE RMSSE  ACF1
+    ##   <chr>  <chr>  <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>
+    ## 1 Damped Test  0.288   3.69  3.00 0.347  2.26 0.663 0.636 0.336
+    ## 2 Holt   Test  0.0610  3.87  3.17 0.244  2.38 0.701 0.668 0.296
+    ## 3 SES    Test  1.46    6.05  4.81 0.904  3.55 1.06  1.04  0.803
+
+Damped Holt’s method is best whether you compare MAE or RMSE values. So
+we will proceed with using the damped Holt’s method and apply it to the
+whole data set to get forecasts for future minutes.
+
+``` r
+fit <- www_usage |>
+  model(
+    Damped = ETS(value ~ error("A") + trend("Ad") + season("N"))
+  )
+tidy(fit)
+```
+
+    ## # A tibble: 5 × 3
+    ##   .model term  estimate
+    ##   <chr>  <chr>    <dbl>
+    ## 1 Damped alpha   1.00  
+    ## 2 Damped beta    0.997 
+    ## 3 Damped phi     0.815 
+    ## 4 Damped l[0]   90.4   
+    ## 5 Damped b[0]   -0.0173
+
+The smoothing parameter for the slope is estimated to be almost one,
+indicating that the trend changes to mostly reflect the slope between
+the last two minutes of internet usage. The value of $\alpha$ is very
+close to one, showing that the level reacts strongly to each new
+observation.
+
+``` r
+fit |>
+  forecast(h = 10) |>
+  autoplot(www_usage) +
+  labs(x="Minute", y="Number of users",
+       title = "Internet usage per minute")
+```
+
+![](Chapter8_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+
+The resulting forecasts look sensible with decreasing trend, which
+flattens out due to the low value of the damping parameter (0.815), and
+relatively wide prediction intervals reflecting the variation in the
+historical data. The prediction intervals are calculated using the
+methods described in Section 8.7.
+
+In this example, the process of selecting a method was relatively easy
+as both MSE and MAE comparisons suggested the same method (damped
+Holt’s). However, sometimes different accuracy measures will suggest
+different forecasting methods, and then a decision is required as to
+which forecasting method we prefer to use. As forecasting tasks can vary
+by many dimensions (length of forecast horizon, size of test set,
+forecast error measures, frequency of data, etc.), it is unlikely that
+one method will be better than all others for all forecasting scenarios.
+What we require from a forecasting method are consistently sensible
+forecasts, and these should be frequently evaluated against the task at
+hand.
