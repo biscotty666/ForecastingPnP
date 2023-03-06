@@ -1,0 +1,15 @@
+---
+title: "Chapter 8.2 Exponential smoothing (8.5-8.7)"
+output:
+  html_document:
+    toc: true
+    df_print: paged
+  github_document:
+    toc: true
+---
+
+```{r}
+library(fpp3)
+```
+
+

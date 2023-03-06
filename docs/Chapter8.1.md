@@ -1,4 +1,4 @@
-Chapter 8 Exponential smoothing
+Chapter 8 Exponential smoothing (8.1-8.4)
 ================
 
 - <a href="#81-simple-exponential-smoothing"
@@ -118,7 +118,7 @@ algeria_economy |>
   labs(y = "% of GDP", title = "Algerian exports")
 ```
 
-![](Chapter8_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
+![](Chapter8.1_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
 
 Using the naïve method, all forecasts for the future are equal to the
 last observed value of the series,
@@ -371,7 +371,7 @@ fc |>
   guides(colour = "none")
 ```
 
-![](Chapter8_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+![](Chapter8.1_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
 The forecasts for the period 2018–2022 are plotted in Figure 8.2. Also
 plotted are one-step-ahead fitted values alongside the data over the
@@ -433,7 +433,7 @@ autoplot(aus_economy, Pop) +
   labs(y = "Millions", title = "Australian population")
 ```
 
-![](Chapter8_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+![](Chapter8.1_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
 Figure 8.3 shows Australia’s annual population from 1960 to 2017. We
 will apply Holt’s method to this series. <span
@@ -559,7 +559,7 @@ aus_economy |>
   guides(colour = guide_legend(title = "Forecast"))
 ```
 
-![](Chapter8_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+![](Chapter8.1_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
 Figure 8.4 shows the forecasts for years 2018–2032 generated from Holt’s
 linear trend method and the damped trend method.
@@ -585,7 +585,7 @@ www_usage |> autoplot(value) +
        title = "Internet usage per minute")
 ```
 
-![](Chapter8_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+![](Chapter8.1_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
 We will use time series cross-validation to compare the one-step
 forecast accuracy of the three methods.
@@ -648,7 +648,7 @@ fit |>
        title = "Internet usage per minute")
 ```
 
-![](Chapter8_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+![](Chapter8.1_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
 
 The resulting forecasts look sensible with decreasing trend, which
 flattens out due to the low value of the damping parameter (0.815), and
@@ -779,7 +779,7 @@ fc |>
   guides(colour = guide_legend(title = "Forecast"))
 ```
 
-![](Chapter8_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+![](Chapter8.1_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
 
 ``` r
 tidy(fit)
@@ -931,7 +931,7 @@ sth_cross_ped |>
        y = "Pedestrians ('000)")
 ```
 
-![](Chapter8_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+![](Chapter8.1_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
 
 Clearly the model has identified the weekly seasonal pattern and the
 increasing trend at the end of the data, and the forecasts are a close
