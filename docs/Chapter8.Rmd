@@ -1,11 +1,11 @@
 ---
 title: "Chapter 8 Exponential smoothing"
 output:
+  github_document:
+    toc: true
   html_document:
     toc: true
     df_print: paged
-  github_document:
-    toc: true
 ---
 
 ```{r}
