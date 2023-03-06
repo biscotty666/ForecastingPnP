@@ -1,11 +1,11 @@
 ---
 title: "Chapter 8 Exponential smoothing (8.1-8.4)"
 output:
+  github_document:
+    toc: true
   html_document:
     toc: true
     df_print: paged
-  github_document:
-    toc: true
 ---
 
 ```{r}
@@ -494,7 +494,6 @@ Table 8.4: Applying Holt-Winters’ method with multiplicative seasonality for f
 |1998 Q3|	6| 8.6|	9.8|-0.0|0.9|9.2|
 |1998 Q4|	7| 9.3| 9.8|-0.0|0.9|9.2|
 |$\vdots$|$\vdots$|$\vdots$|$\vdots$|$\vdots$|$\vdots$|$\vdots$|
-
 |2017 Q1|80|12.4|10.8|0.1|1.2|12.6|
 |2017 Q2|81|10.5|10.9|0.1|1.0|10.6|
 |2017 Q3|82|10.5|11.1|0.1|0.9|10.2|
