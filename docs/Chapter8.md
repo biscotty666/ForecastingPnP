@@ -25,6 +25,21 @@ Chapter 8 Exponential smoothing
     Population</a>
   - <a href="#example-internet-useage"
     id="toc-example-internet-useage">Example: Internet useage</a>
+- <a href="#83-methods-with-seasonality"
+  id="toc-83-methods-with-seasonality">8.3 Methods with seasonality</a>
+  - <a href="#holt-winters-additive-method"
+    id="toc-holt-winters-additive-method">Holt-Winters’ additive method</a>
+  - <a href="#holt-winters-multiplicative-method"
+    id="toc-holt-winters-multiplicative-method">Holt-Winters’ multiplicative
+    method</a>
+  - <a href="#example-deomestic-overnight-trips-in-australia"
+    id="toc-example-deomestic-overnight-trips-in-australia">Example:
+    Deomestic overnight trips in Australia</a>
+  - <a href="#holt-winters-damped-method"
+    id="toc-holt-winters-damped-method">Holt-Winters’ damped method</a>
+  - <a href="#example-holt-winters-method-with-daily-data"
+    id="toc-example-holt-winters-method-with-daily-data">Example:
+    Holt-Winters’ method with daily data</a>
 
 ``` r
 library(fpp3)
@@ -649,3 +664,272 @@ one method will be better than all others for all forecasting scenarios.
 What we require from a forecasting method are consistently sensible
 forecasts, and these should be frequently evaluated against the task at
 hand.
+
+# 8.3 Methods with seasonality
+
+Holt (1957) and Winters (1960) extended Holt’s method to capture
+seasonality. The Holt-Winters seasonal method comprises the forecast
+equation and three smoothing equations — one for the level $\ell_t$, one
+for the trend $b_t$, and one for the seasonal component $s_t$, with
+corresponding smoothing parameters $\alpha$, $\beta^*$ and $\gamma$. We
+use $m$ to denote the period of the seasonality, i.e., the number of
+seasons in a year. For example, for quarterly data $m=4$, and for
+monthly data $m=12$.
+
+There are two variations to this method that differ in the nature of the
+seasonal component. <span style="background-color:#ffffb3;">The additive
+method is preferred when the seasonal variations are roughly constant
+through the series, while the multiplicative method is preferred when
+the seasonal variations are changing proportional to the level of the
+series.</span> With the additive method, the seasonal component is
+expressed in absolute terms in the scale of the observed series, and in
+the level equation the series is seasonally adjusted by subtracting the
+seasonal component. Within each year, the seasonal component will add up
+to approximately zero. With the multiplicative method, the seasonal
+component is expressed in relative terms (percentages), and the series
+is seasonally adjusted by dividing through by the seasonal component.
+Within each year, the seasonal component will sum up to approximately
+$m$.
+
+## Holt-Winters’ additive method
+
+$$
+\begin{align*}
+  \hat{y}_{t+h|t} &= \ell_{t} + hb_{t} + s_{t+h-m(k+1)} \\
+  \ell_{t} &= \alpha(y_{t} - s_{t-m}) + (1 - \alpha)(\ell_{t-1} + b_{t-1})\\
+  b_{t} &= \beta^*(\ell_{t} - \ell_{t-1}) + (1 - \beta^*)b_{t-1}\\
+  s_{t} &= \gamma (y_{t}-\ell_{t-1}-b_{t-1}) + (1-\gamma)s_{t-m},
+\end{align*}
+$$
+
+where $k$ is the integer part of $(h−1)/m$, which ensures that the
+estimates of the seasonal indices used for forecasting come from the
+final year of the sample. The level equation shows a weighted average
+between the seasonally adjusted observation $(y_t−s_{t−m})$ and the
+non-seasonal forecast $(\ell_{t−1}+b_{t−1})$ for time $t$. The trend
+equation is identical to Holt’s linear method. The seasonal equation
+shows a weighted average between the current seasonal index,
+$(y_t−\ell_{t−1}−b_{t−1})$, and the seasonal index of the same season
+last year (i.e., $m$ time periods ago).
+
+The equation for the seasonal component is often expressed as
+
+$$
+s_{t} = \gamma^* (y_{t}-\ell_{t})+ (1-\gamma^*)s_{t-m}.
+$$
+
+If we substitute $\ell_t$ from the smoothing equation for the level of
+the component form above, we get
+
+$$
+s_{t} = \gamma^*(1-\alpha) (y_{t}-\ell_{t-1}-b_{t-1})+ [1-\gamma^*(1-\alpha)]s_{t-m},
+$$
+
+If we substitute $\ell_t$ from the smoothing equation for the level of
+the component form above, we get
+
+$$
+s_{t} = \gamma^*(1-\alpha) (y_{t}-\ell_{t-1}-b_{t-1})+ [1-\gamma^*(1-\alpha)]s_{t-m},
+$$
+
+which is identical to the smoothing equation for the seasonal component
+we specify here, with $\gamma=\gamma^∗(1−\alpha)$. The usual parameter
+restriction is $0\le\gamma^*\le1$ , which translates to
+$0\le\gamma\le1-\alpha$.
+
+## Holt-Winters’ multiplicative method
+
+$$
+\begin{align*}
+  \hat{y}_{t+h|t} &= (\ell_{t} + hb_{t})s_{t+h-m(k+1)} \\
+  \ell_{t} &= \alpha \frac{y_{t}}{s_{t-m}} + (1 - \alpha)(\ell_{t-1} + b_{t-1})\\
+  b_{t} &= \beta^*(\ell_{t}-\ell_{t-1}) + (1 - \beta^*)b_{t-1}                \\
+  s_{t} &= \gamma \frac{y_{t}}{(\ell_{t-1} + b_{t-1})} + (1 - \gamma)s_{t-m}.
+\end{align*}
+$$
+
+## Example: Deomestic overnight trips in Australia
+
+We apply Holt-Winters’ method with both additive and multiplicative
+seasonality15 to forecast quarterly visitor nights in Australia spent by
+domestic tourists. Figure 8.7 shows the data from 1998–2017, and the
+forecasts for 2018–2020. The data show an obvious seasonal pattern, with
+peaks observed in the March quarter of each year, corresponding to the
+Australian summer.
+
+``` r
+aus_holidays <- tourism |>
+  filter(Purpose == "Holiday") |>
+  summarise(Trips = sum(Trips)/1e3)
+fit <- aus_holidays |>
+  model(
+    additive = ETS(Trips ~ error("A") + trend("A") +
+                                                season("A")),
+    multiplicative = ETS(Trips ~ error("M") + trend("A") +
+                                                season("M"))
+  )
+fc <- fit |> forecast(h = "3 years")
+fc |>
+  autoplot(aus_holidays, level = NULL) +
+  labs(title="Australian domestic tourism",
+       y="Overnight trips (millions)") +
+  guides(colour = guide_legend(title = "Forecast"))
+```
+
+![](Chapter8_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+
+``` r
+tidy(fit)
+```
+
+    ## # A tibble: 18 × 3
+    ##    .model         term   estimate
+    ##    <chr>          <chr>     <dbl>
+    ##  1 additive       alpha  0.262   
+    ##  2 additive       beta   0.0431  
+    ##  3 additive       gamma  0.000100
+    ##  4 additive       l[0]   9.79    
+    ##  5 additive       b[0]   0.0211  
+    ##  6 additive       s[0]  -0.534   
+    ##  7 additive       s[-1] -0.670   
+    ##  8 additive       s[-2] -0.294   
+    ##  9 additive       s[-3]  1.50    
+    ## 10 multiplicative alpha  0.224   
+    ## 11 multiplicative beta   0.0304  
+    ## 12 multiplicative gamma  0.000100
+    ## 13 multiplicative l[0]  10.0     
+    ## 14 multiplicative b[0]  -0.0114  
+    ## 15 multiplicative s[0]   0.943   
+    ## 16 multiplicative s[-1]  0.927   
+    ## 17 multiplicative s[-2]  0.969   
+    ## 18 multiplicative s[-3]  1.16
+
+Table 8.3: Applying Holt-Winters’ method with additive seasonality for
+forecasting domestic tourism in Australia. Notice that the additive
+seasonal component sums to approximately zero. The smoothing parameters
+are $\alpha=0.2620$, $\beta^*=0.1646$, $\gamma=0.0001$ and
+$RMSE=0.4169$.
+
+| Quarter  | Time     | Observation | Level    | Slope    | Season   | Forecast               |     |
+|:---------|:---------|:------------|:---------|:---------|:---------|:-----------------------|:----|
+|          | $t$      | $y_t$       | $\ell_t$ | $b_t$    | $s_t$    | $\hat{y}_{t\|t-1}$     |     |
+| 1997 Q1  | 0        |             |          |          | 1.5      |                        |     |
+| 1997 Q2  | 1        |             |          |          | -0.3     |                        |     |
+| 1997 Q3  | 2        |             |          |          | -0.7     |                        |     |
+| 1997 Q4  | 3        |             | 9.8      | 0.0      | -0.5     |                        |     |
+| 1998 Q1  | 4        | 11.8        | 9.9      | 0.0      | 1.5      | 11.3                   |     |
+| 1998 Q2  | 5        | 9.3         | 9.9      | 0.0      | -0.3     | 9.7                    |     |
+| 1998 Q3  | 6        | 8.6         | 9.7      | -0.0     | -0.7     | 9.2                    |     |
+| 1998 Q4  | 7        | 9.3         | 9.8      | 0.0      | -0.5     | 9.2                    |     |
+| $\vdots$ | $\vdots$ | $\vdots$    | $\vdots$ | $\vdots$ | $\vdots$ | $\vdots$               |     |
+| 2017 Q1  | 80       | 12.4        | 10.9     | 0.1      | 1.5      | 12.3                   |     |
+| 2017 Q2  | 81       | 10.5        | 10.9     | 0.1      | -0.3     | 10.7                   |     |
+| 2017 Q3  | 82       | 10.5        | 11.0     | 0.1      | -0.7     | 10.3                   |     |
+| 2017 Q4  | 83       | 11.2        | 11.3     | 0.1      | -0.5     | 10.6                   |     |
+|          | $h$      |             |          |          |          | $\hat{y}_{T+h\vert T}$ |     |
+| 2018 Q1  | 1        |             |          |          |          | 12.9                   |     |
+| 2018 Q2  | 2        |             |          |          |          | 11.2                   |     |
+| 2018 Q3  | 3        |             |          |          |          | 11.0                   |     |
+| 2018 Q4  | 4        |             |          |          |          | 11.2                   |     |
+| 2019 Q1  | 5        |             |          |          |          | 13.4                   |     |
+| 2019 Q2  | 6        |             |          |          |          | 11.7                   |     |
+| 2019 Q3  | 7        |             |          |          |          | 11.5                   |     |
+| 2019 Q4  | 8        |             |          |          |          | 11.7                   |     |
+| 2020 Q1  | 9        |             |          |          |          | 13.9                   |     |
+| 2020 Q2  | 10       |             |          |          |          | 12.2                   |     |
+| 2020 Q3  | 11       |             |          |          |          | 11.9                   |     |
+| 2020 Q4  | 12       |             |          |          |          | 12.2                   |     |
+
+Table 8.4: Applying Holt-Winters’ method with multiplicative seasonality
+for forecasting domestic tourism in Australia. Notice that the
+multiplicative seasonal component sums to approximately $m=4$. The
+smoothing parameters are $\alpha=0.2237$, $\beta^*=0.1360$,
+$\gamma=0.0001$ and $RMSE=0.4122$.
+
+| Quarter  | Time     | Observation | Level    | Slope    | Season   | Forecast           |     |
+|:---------|:---------|:------------|:---------|:---------|:---------|:-------------------|:----|
+|          | $t$      | $y_t$       | $\ell_t$ | $b_t$    | $s_t$    | $\hat{y}_{t\|t-1}$ |     |
+| 1997 Q1  | 0        |             |          |          | 1.2      |                    |     |
+| 1997 Q2  | 1        |             |          |          | 1.0      |                    |     |
+| 1997 Q3  | 2        |             |          |          | 0.9      |                    |     |
+| 1997 Q4  | 3        |             | 10.0     | -0.0     | 0.9      |                    |     |
+| 1998 Q1  | 4        | 11.8        | 10.0     | -0.0     | 1.2      | 11.6               |     |
+| 1998 Q2  | 5        | 9.3         | 9.9      | -0.0     | 1.0      | 9.7                |     |
+| 1998 Q3  | 6        | 8.6         | 9.8      | -0.0     | 0.9      | 9.2                |     |
+| 1998 Q4  | 7        | 9.3         | 9.8      | -0.0     | 0.9      | 9.2                |     |
+| $\vdots$ | $\vdots$ | $\vdots$    | $\vdots$ | $\vdots$ | $\vdots$ | $\vdots$           |     |
+
+\|2017 Q1\|80\|12.4\|10.8\|0.1\|1.2\|12.6\| \|2017
+Q2\|81\|10.5\|10.9\|0.1\|1.0\|10.6\| \|2017
+Q3\|82\|10.5\|11.1\|0.1\|0.9\|10.2\| \|2017
+Q4\|83\|11.2\|11.3\|0.1\|0.9\|10.5\|
+\|\|$h$\|\|\|\|\|$\hat{y}_{T+h\vert T}$\| \|2018 Q1 \|1 \|\|\|\|\|13.3\|
+\|2018 Q2 \|2 \|\|\|\|\|11.2\| \|2018 Q3 \|3 \|\|\|\|\|10.8\| \|2018 Q4
+\|4 \|\|\|\|\|11.1\| \|2019 Q1 \|5 \|\|\|\|\|13.8\| \|2019 Q2 \|6
+\|\|\|\|\|11.7\| \|2019 Q3 \|7 \|\|\|\|\|11.3\| \|2019 Q4 \|8
+\|\|\|\|\|11.6\| \|2020 Q1 \|9 \|\|\|\|\|14.4\| \|2020 Q2 \|10
+\|\|\|\|\|12.2\| \|2020 Q3 \|11 \|\|\|\|\|11.7\| \|2020 Q4 \|12
+\|\|\|\|\|12.1\|
+
+The applications of both methods (with additive and multiplicative
+seasonality) are presented in Tables 8.3 and 8.4 respectively. Because
+both methods have exactly the same number of parameters to estimate, we
+can compare the training RMSE from both models. In this case, the method
+with multiplicative seasonality fits the data slightly better.
+
+The estimated components for both models are plotted in Figure 8.8. The
+small value of $\gamma$ for the multiplicative model means that the
+seasonal component hardly changes over time. The small value of
+$\beta^*$ means the slope component hardly changes over time (compare
+the vertical scales of the slope and level components).
+
+<img src="https://otexts.com/fpp3/fpp_files/figure-html/fig-7-LevelTrendSeas-1.png" />
+
+## Holt-Winters’ damped method
+
+Damping is possible with both additive and multiplicative Holt-Winters’
+methods. A method that often provides accurate and robust forecasts for
+seasonal data is the Holt-Winters method with a damped trend and
+multiplicative seasonality:
+
+$$
+\begin{align*}
+  \hat{y}_{t+h|t} &= \left[\ell_{t} + (\phi+\phi^2 + \dots + \phi^{h})b_{t}\right]s_{t+h-m(k+1)} \\
+  \ell_{t} &= \alpha(y_{t} / s_{t-m}) + (1 - \alpha)(\ell_{t-1} + \phi b_{t-1})\\
+  b_{t} &= \beta^*(\ell_{t} - \ell_{t-1}) + (1 - \beta^*)\phi b_{t-1}             \\
+  s_{t} &= \gamma \frac{y_{t}}{(\ell_{t-1} + \phi b_{t-1})} + (1 - \gamma)s_{t-m}.
+\end{align*}
+$$
+
+## Example: Holt-Winters’ method with daily data
+
+The Holt-Winters method can also be used for daily type of data, where
+the seasonal period is $m=7$, and the appropriate unit of time for $h$
+is in days. Here we forecast pedestrian traffic at a busy Melbourne
+train station in July 2016.
+
+``` r
+sth_cross_ped <- pedestrian |>
+  filter(Date >= "2016-07-01",
+         Sensor == "Southern Cross Station") |>
+  index_by(Date) |>
+  summarise(Count = sum(Count)/1000)
+```
+
+``` r
+sth_cross_ped |>
+  filter(Date <= "2016-07-31") |>
+  model(
+    hw = ETS(Count ~ error("M") + trend("Ad") + season("M"))
+  ) |>
+  forecast(h = "2 weeks") |>
+  autoplot(sth_cross_ped |> filter(Date <= "2016-08-14")) +
+  labs(title = "Daily traffic: Southern Cross Station",
+       y = "Pedestrians ('000)")
+```
+
+![](Chapter8_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+
+Clearly the model has identified the weekly seasonal pattern and the
+increasing trend at the end of the data, and the forecasts are a close
+match to the test data.
