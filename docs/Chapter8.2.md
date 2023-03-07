@@ -19,6 +19,15 @@ Chapter 8.2 Exponential smoothing (8.5-8.7)
     Holt’s linear method with multiplicative errors</a>
   - <a href="#other-ets-models" id="toc-other-ets-models">Other ETS
     models</a>
+- <a href="#86-estimation-and-model-selection"
+  id="toc-86-estimation-and-model-selection">8.6 Estimation and model
+  selection</a>
+  - <a href="#estimating-ets-models"
+    id="toc-estimating-ets-models">Estimating ETS models</a>
+  - <a href="#model-selection" id="toc-model-selection">Model selection</a>
+  - <a href="#example-domestic-holiday-tourist-visitor-nights-in-australia"
+    id="toc-example-domestic-holiday-tourist-visitor-nights-in-australia">Example:
+    Domestic holiday tourist visitor nights in Australia</a>
 
 ``` r
 library(fpp3)
@@ -227,3 +236,171 @@ each of the exponential smoothing methods of Table 8.6. Table 8.7
 presents the equations for all of the models in the ETS framework.
 
 <img src="https://otexts.com/fpp3/figs/statespacemodels-1.png" />
+
+# 8.6 Estimation and model selection
+
+## Estimating ETS models
+
+<span style="background-color:#ffffb3;">An alternative to estimating the
+parameters by minimising the sum of squared errors is to maximise the
+“likelihood”.</span> The likelihood is the probability of the data
+arising from the specified model. Thus, a large likelihood is associated
+with a good model. For an additive error model, maximising the
+likelihood (assuming normally distributed errors) gives the same results
+as minimising the sum of squared errors. However, <span
+style="background-color:#ffffb3;">different results will be obtained for
+multiplicative error models</span>. In this section, we will estimate
+the smoothing parameters $\alpha, \beta, \gamma, \text{ and } \phi$ ,
+and the initial states $\ell_0,b_0,s_0,s_1,\dots,s_{-m+1}$, by <span
+style="background-color:#ffffb3;">maximising the likelihood</span>.
+
+The possible values that the smoothing parameters can take are
+restricted. Traditionally, the parameters have been constrained to lie
+between 0 and 1 so that the equations can be interpreted as weighted
+averages. That is, $0< \alpha,\beta^*,\gamma^*,\phi<1$. For the state
+space models, we have set $\beta=\alpha\beta^*$ and
+$\gamma=(1-\alpha)\gamma^*$. Therefore, the traditional restrictions
+translate to $0\lt\alpha\lt1$, $0\lt\beta\lt\alpha$ and
+$0\lt y\lt1-\alpha$. In practice, the damping parameter $\phi$ is
+usually constrained further to prevent numerical difficulties in
+estimating the model. In the `fable` package, it is restricted so that
+$0.8\lt\phi\lt0.98$.
+
+Another way to view the parameters is through a consideration of the
+mathematical properties of the state space models. The parameters are
+constrained in order to prevent observations in the distant past having
+a continuing effect on current forecasts. This leads to some
+*admissibility* constraints on the parameters, which are usually (but
+not always) less restrictive than the traditional constraints region
+(Hyndman et al., 2008, pp. 149–161). For example, for the ETS(A,N,N)
+model, the traditional parameter region is $0\lt\alpha\lt1$ but the
+admissible region is $0\lt\alpha\lt2$ . For the ETS(A,A,N) model, the
+traditional parameter region is $0\lt\alpha\lt1$ and
+$0\lt\beta\lt\alpha$ but the admissible region is $0\lt\alpha\lt2$ and
+$0\lt\beta\lt4-2\alpha$.
+
+[Article on **admissibility** and the $A^*$
+algorithm](http://www.cs.trincoll.edu/~ram/cpsc352/notes/astar.html)
+
+## Model selection
+
+A great advantage of the ETS statistical framework is that information
+criteria can be used for model selection. The AIC, AIC$_c$ and BIC,
+introduced in Section 7.5, can be used here to determine which of the
+ETS models is most appropriate for a given time series.
+
+For ETS models, Akaike’s Information Criterion (AIC) is defined as
+
+$$\text{AIC} = -2\log(L) + 2k,$$
+
+where $L$ is the likelihood of the model and $k$ is the total number of
+parameters and initial states that have been estimated (including the
+residual variance).
+
+The AIC corrected for small sample bias (AIC$_c$) is defined as
+
+$$
+\text{AIC}_{\text{c}} = \text{AIC} + \frac{2k(k+1)}{T-k-1},
+$$
+
+and the Bayesian Information Criterion (BIC) is
+
+$$\text{BIC} = \text{AIC} + k[\log(T)-2].$$
+
+<span style="background-color:#ffffb3;">Three of the combinations of
+(Error, Trend, Seasonal) can lead to numerical difficulties.
+Specifically, the models that can cause such instabilities are
+ETS(A,N,M), ETS(A,A,M), and ETS(A,A$_d$,M), due to division by values
+potentially close to zero in the state equations. We normally do not
+consider these particular combinations when selecting a model.</span>
+
+Models with multiplicative errors are useful when the data are strictly
+positive, but are not numerically stable when the data contain zeros or
+negative values. Therefore, <span
+style="background-color:#ffffb3;">multiplicative error models will not
+be considered if the time series is not strictly positive.</span> In
+that case, only the six fully additive models will be applied.
+
+## Example: Domestic holiday tourist visitor nights in Australia
+
+We now employ the ETS statistical framework to forecast Australian
+holiday tourism over the period 2016–2019. We let the `ETS()` function
+select the model by minimising the $AIC_c$.
+
+``` r
+aus_holidays <- tourism |>
+  filter(Purpose == "Holiday") |>
+  summarise(Trips = sum(Trips)/1e3)
+fit <- aus_holidays |>
+  model(ETS(Trips))
+report(fit)
+```
+
+    ## Series: Trips 
+    ## Model: ETS(M,N,A) 
+    ##   Smoothing parameters:
+    ##     alpha = 0.3484054 
+    ##     gamma = 0.0001000018 
+    ## 
+    ##   Initial states:
+    ##      l[0]       s[0]      s[-1]      s[-2]    s[-3]
+    ##  9.727072 -0.5376106 -0.6884343 -0.2933663 1.519411
+    ## 
+    ##   sigma^2:  0.0022
+    ## 
+    ##      AIC     AICc      BIC 
+    ## 226.2289 227.7845 242.9031
+
+The model selected is ETS(M,N,A)
+
+$$
+\begin{align*}
+y_{t} &= (\ell_{t-1}+s_{t-m})(1 + \varepsilon_t)\\
+\ell_t &= \ell_{t-1} + \alpha(\ell_{t-1}+s_{t-m})\varepsilon_t\\
+s_t &=  s_{t-m} + \gamma(\ell_{t-1}+s_{t-m}) \varepsilon_t.
+\end{align*}
+$$
+
+The parameter estimates are $\hat{\alpha}=0.3484$ and $\hat{y}=0.0001$.
+The output also returns the estimates for the initial states $\ell_0$,
+$s_0$, $s_{−1}$, $s_{−2}$ and $s_{−3}$. Compare these with the values
+obtained for the Holt-Winters method with additive seasonality presented
+in Table 8.3.
+
+Figure 8.10 shows the states over time, while Figure 8.12 shows point
+forecasts and prediction intervals generated from the model. <span
+style="background-color:#ffffb3;">The small values of $\gamma$ indicate
+that the seasonal states change very little over time.</span>
+
+``` r
+components(fit) |>
+  autoplot() +
+  labs(title = "ETS(M,N,A) components")
+```
+
+    ## Warning: Removed 4 rows containing missing values (`geom_line()`).
+
+![](Chapter8.2_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+
+Because this model has multiplicative errors, the innovation residuals
+are not equivalent to the regular residuals (i.e., the one-step training
+errors). The innovation residuals are given by $\hat{\epsilon}_t$, while
+the regular residuals are defined as $y_t−\hat{y}_{t\vert t-1}$. We can
+obtain both using the augment() function. They are plotted in Figure
+8.11.
+
+``` r
+augment(fit) |>
+  autoplot(.innov) +
+  labs(y = "Innovation Residuals")
+```
+
+![](Chapter8.2_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+
+``` r
+augment(fit) |>
+  autoplot(.resid) +
+  labs(y = "Regular Residuals")
+```
+
+![](Chapter8.2_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
