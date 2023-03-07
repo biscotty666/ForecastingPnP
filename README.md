@@ -18,4 +18,7 @@ Chapter 7 Time series regression models {[html](docs/Chapter7.html), [md](docs/C
 
 Chapter 8 Exponential smoothing {[html](docs/Chapter8.html), [md](docs/Chapter8.md))
 
+Chapter 9 ARIMA Models {[html](docs/Chapter9.html), [md](docs/Chapter9.md))
+
 [Chapter 2 Exercises](exercises/Ch2Exercises.md)
+
