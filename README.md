@@ -16,8 +16,6 @@ Chapter 5 The forecasters toolbox Part 2 {[html](docs/Chapter5.2.html), [md](doc
 
 Chapter 7 Time series regression models {[html](docs/Chapter7.html), [md](docs/Chapter7.md))
 
-Chapter 8 Exponential smoothing (8.1-8.4) {[html](docs/Chapter8.1.html), [md](docs/Chapter8.1.md))
-
-Chapter 8 Exponential smoothing (8.5-8.7) {[html](docs/Chapter8.2.html), [md](docs/Chapter8.2.md))
+Chapter 8 Exponential smoothing {[html](docs/Chapter8.html), [md](docs/Chapter8.md))
 
 [Chapter 2 Exercises](exercises/Ch2Exercises.md)
