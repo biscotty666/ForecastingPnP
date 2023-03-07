@@ -1636,6 +1636,8 @@ model</a></li>
 <li><a href="#unit-root-tests" id="toc-unit-root-tests">Unit root
 tests</a></li>
 </ul></li>
+<li><a href="#backshift-notation" id="toc-backshift-notation">9.2
+Backshift notation</a></li>
 </ul>
 </div>
 
@@ -1984,6 +1986,49 @@ difference is required), we apply the unitroot_ndiffs() function to the
 seasonally differenced data. These functions suggest we should do both a
 seasonal difference and a first difference.</p>
 </div>
+</div>
+<div id="backshift-notation" class="section level1">
+<h1>9.2 Backshift notation</h1>
+<p>The backward shift operator <span class="math inline">\(B\)</span> is
+a useful notational device when working with time series lags:</p>
+<p><span class="math display">\[B y_{t} = y_{t - 1} \: .\]</span></p>
+<p>(Some references use <span class="math inline">\(L\)</span> for “lag”
+instead of <span class="math inline">\(B\)</span> for “backshift”.) In
+other words, <span class="math inline">\(B\)</span>, operating on <span class="math inline">\(y_t\)</span>, has the effect of shifting the data
+back one period. Two applications of <span class="math inline">\(B\)</span> to <span class="math inline">\(y_t\)</span> shifts the data back two periods:</p>
+<p><span class="math display">\[B(By_{t}) = B^{2}y_{t} = y_{t-2}\:
+.\]</span></p>
+<p>For monthly data, if we wish to consider “the same month last year,”
+the notation is <span class="math inline">\(B^{12}y_t=y_{t−12}\)</span>.</p>
+<p><span style="background-color: #EEDEEE;">The backward shift operator
+is convenient for describing the process of
+<strong>differencing</strong>.</span> A first difference can be written
+as</p>
+<p><span class="math display">\[
+y&#39;_{t} = y_{t} - y_{t-1} = y_t - By_{t} = (1 - B)y_{t}\: .
+\]</span></p>
+<p>So a first difference can be represented by <span class="math inline">\((1−B)\)</span>. Similarly, if second-order
+differences have to be computed, then:</p>
+<p><span class="math display">\[
+y&#39;&#39;_{t} = y_{t} - 2y_{t - 1} + y_{t - 2} = (1-2B+B^2)y_t = (1 -
+B)^{2} y_{t}\: .
+\]</span></p>
+<p>In general, a <span class="math inline">\(d\)</span>th-order
+difference can be written as</p>
+<p><span class="math display">\[(1 - B)^{d} y_{t}.\]</span></p>
+<p>Backshift notation is particularly useful when combining differences,
+as the operator can be treated using ordinary algebraic rules. In
+particular, terms involving <span class="math inline">\(B\)</span> can
+be multiplied together.</p>
+<p>For example, a seasonal difference followed by a first difference can
+be written as</p>
+<p><span class="math display">\[
+\begin{align*}
+(1-B)(1-B^m)y_t &amp;= (1 - B - B^m + B^{m+1})y_t \\
+&amp;= y_t-y_{t-1}-y_{t-m}+y_{t-m-1},
+\end{align*}
+\]</span></p>
+<p>the same result we obtained earlier.</p>
 </div>
 
 
