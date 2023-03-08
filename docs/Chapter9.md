@@ -14,6 +14,8 @@ Chapter 9 ARIMA Models
   - <a href="#unit-root-tests" id="toc-unit-root-tests">Unit root tests</a>
 - <a href="#92-backshift-notation" id="toc-92-backshift-notation">9.2
   Backshift notation</a>
+- <a href="#93-autoregressive-models"
+  id="toc-93-autoregressive-models">9.3 Autoregressive models</a>
 
 ``` r
 library(fpp3)
@@ -498,3 +500,58 @@ $$
 $$
 
 the same result we obtained earlier.
+
+# 9.3 Autoregressive models
+
+In a multiple regression model, introduced in Chapter 7, we forecast the
+variable of interest using a linear combination of predictors. <span
+style="background-color: #EEDEEE;">In an autoregression model, we
+forecast the variable of interest using **a linear combination of past
+values of the variable**.</span> The term autoregression indicates that
+it is a regression of the variable against itself.
+
+Thus, an autoregressive model of order $p$ can be written as
+
+$$
+y_{t} = c + \phi_{1}y_{t-1} + \phi_{2}y_{t-2} + \dots + \phi_{p}y_{t-p} + \varepsilon_{t},
+$$
+
+where $\epsilon_t$ is white noise. <span
+style="background-color: #EEDEEE;">This is like a multiple regression
+but with lagged values of $y_t$ as predictors. We refer to this as an
+**AR($p$) model**, an autoregressive model of order $p$.</span>
+
+Autoregressive models are remarkably flexible at handling a wide range
+of different time series patterns. The two series in Figure 9.5 show
+series from an AR(1) model and an AR(2) model. Changing the parameters
+$\phi_1,\dots,\phi_p$ results in different time series patterns. The
+variance of the error term $\epsilon_t$ will only change the scale of
+the series, not the patterns.
+
+<img src="https://otexts.com/fpp3/fpp_files/figure-html/arp-1.png" />
+
+<div style="background-color: #EFEFEF; text-align: center;">
+
+Figure 9.5: Two examples of data from autoregressive models with
+different parameters. Left: AR(1) with $y_t=18−0.8y_{t−1}+\epsilon_t$.
+Right: AR(2) with $y_t=8+1.3y_{t−1}−0.7y_{t−2}+\epsilon_t.$ In both
+cases, $\epsilon_t$ is normally distributed white noise with mean zero
+and variance one.
+
+</div>
+
+or an AR(1) model:
+
+- when $\phi_1=0$ and $c=0$, $y_t$ is equivalent to white noise;
+- when $\phi_1=1$ and $c=0$, $y_t$ is equivalent to a random walk;
+- when $\phi_1=1$ and $c≠0$, $y_t$ is equivalent to a random walk with
+  drift;
+- when $\phi_1<0$, $y_t$ tends to oscillate around the mean.
+
+We normally restrict autoregressive models to stationary data, in which
+case some constraints on the values of the parameters are required.
+
+- For an AR(1) model: $-1<\phi_1<1$.
+- For an AR(2) model: $−1<\phi_2<1$, $\phi_1+\phi_2<1, \phi_2−\phi_1<1$
+  . When $p\le3$, the restrictions are much more complicated. The fable
+  package takes care of these restrictions when estimating a model.
